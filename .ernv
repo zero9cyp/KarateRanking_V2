@@ -1,0 +1,4 @@
+PORT=3700
+DATABASE_URL=mongodb+srv://user:password@cluster.mongodb.net/mydb
+SESIONS_SECRET=skdkfhinu8$bjhvft@WWSXtyfyugku8@WWSX
+API_KEY=abc123xyz

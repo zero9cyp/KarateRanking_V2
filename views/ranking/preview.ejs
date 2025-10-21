@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <title>Προεπισκόπηση Κατάταξης Αθλητών</title>
+  <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .warning { color: #d9534f; font-weight: bold; }
+    .table-sm td, .table-sm th { padding: 0.3rem; }
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <div class="text-center mb-4">
+      <h1>📊 Προεπισκόπηση Κατάταξης Αθλητών - Έτος <%= year %></h1>
+      <% if (currentUser) { %>
+        <p>👋 Καλώς ήρθες, <strong><%= currentUser.username %></strong></p>
+      <% } %>
+      <a href="/" class="btn btn-outline-secondary btn-sm">⬅️ Επιστροφή στο Dashboard</a>
+    </div>
+
+    <% preview.forEach(athlete => { %>
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <strong><%= athlete.full_name %></strong>
+          <span class="float-end">Σύνολο: <%= athlete.totalPoints %> pts</span>
+        </div>
+        <div class="card-body p-2">
+          Σύνολο: <%= athlete.totalPoints %> pts
+          <%= year - 1 %>: <%= athlete.lastYearPoints %> pts | <%= year %>: <%= athlete.thisYearPoints %> pts
+
+          <% if (athlete.warnings && athlete.warnings.length > 0) { %>
+            <p class="warning">⚠️ Προειδοποιήσεις: <%= athlete.warnings.join(', ') %></p>
+          <% } %>
+
+          <% if (athlete.tournamentDetails && athlete.tournamentDetails.length > 0) { %>
+            <table class="table table-sm table-bordered mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Πρωτάθλημα</th>
+                  <th>Ημ/νία</th>
+                  <th>Νίκες</th>
+                  <th>Θέση</th>
+                  <th>Βαθμοί</th>
+                  <th>Ποινές</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% athlete.tournamentDetails.forEach(t => { %>
+                  <tr>
+                    <td><%= t.tournament_id %></td>
+                    <td><%= new Date(t.tournament_date).toLocaleDateString('el-GR') %></td>
+                    <td><%= t.wins %></td>
+                    <td><%= t.placement %></td>
+                    <td><%= t.points %></td>
+                    <td>
+                      <% if (t.penalties) { %>
+                        <%= t.penalties.ageChange ? `Ηλικία: -${t.penalties.ageChange}%` : '' %>
+                        <%= t.penalties.weightChange ? ` Βάρος: -${t.penalties.weightChange}%` : '' %>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+
+    <div class="text-center">
+      <form action="/ranking/apply" method="POST">
+        <button type="submit" class="btn btn-success btn-lg shadow-sm">✅ Εφαρμογή Κατάταξης</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

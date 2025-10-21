@@ -1,0 +1,33 @@
+<h1 class="mb-3">Age Categories</h1>
+
+<a href="/ageCategories/add" class="btn btn-primary mb-3">Add Category</a>
+
+<div class="table-responsive">
+  <table class="table table-bordered table-striped w-100">
+    <thead class="table-dark">
+      <tr>
+        <th>Name</th>
+        <th>Min Age</th>
+        <th>Max Age</th>
+        <th>Notes</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% categories.forEach(c => { %>
+      <tr>
+        <td><%= c.name %></td>
+        <td><%= c.min_age %></td>
+        <td><%= c.max_age %></td>
+        <td><%= c.notes %></td>
+        <td>
+          <a href="/ageCategories/edit/<%= c.id %>" class="btn btn-sm btn-warning me-2">Edit</a>
+          <a href="/ageCategories/delete/<%= c.id %>" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</a>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<a href="/" class="btn btn-secondary mt-3">Back</a>

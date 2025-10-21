@@ -1,0 +1,12 @@
+<h1>Add Tournament</h1>
+<form method="POST" action="/tournaments/add">
+  <input type="text" name="name" placeholder="Tournament Name" required>
+  <input type="date" name="date" required>
+  <input type="text" name="location" placeholder="Location">
+  <input type="text" name="type" placeholder="Type">
+  <input type="number" name="difficulty_multiplier" placeholder="Difficulty multiplier" step="0.1">
+  <label>International <input type="checkbox" name="is_international" value="1"></label>
+  <label>Requires Approval <input type="checkbox" name="requires_approval" value="1"></label>
+  <button type="submit">Add Tournament</button>
+</form>
+<a href="/tournaments">Back</a>

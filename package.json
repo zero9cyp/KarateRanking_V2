@@ -1,0 +1,25 @@
+{
+  "name": "karateranking_2",
+  "version": "1.2.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "SvsNik",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
+    "connect-flash": "^0.1.1",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.18.2",
+    "json2csv": "^6.0.0-alpha.2",
+    "multer": "^2.0.2",
+    "sessions": "^0.0.2-7",
+    "sqlite3": "^5.1.7"
+  }
+}

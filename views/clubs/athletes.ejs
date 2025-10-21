@@ -1,0 +1,14 @@
+<h1>Athletes in <%= club.name %></h1>
+<table border="1">
+<tr><th>Name</th><th>Total Points</th><th>Actions</th></tr>
+<% athletes.forEach(a => { %>
+<tr>
+<td><%= a.full_name %></td>
+<td><%= a.total_points %></td>
+<td>
+  <a href="/clubs/<%= club.id %>/athletes/<%= a.id %>/transfer">Transfer</a>
+</td>
+</tr>
+<% }) %>
+</table>
+<a href="/clubs">Back</a>

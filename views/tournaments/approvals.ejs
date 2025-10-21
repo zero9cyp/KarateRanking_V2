@@ -1,0 +1,29 @@
+<h1>Approvals for <%= tournament.name %></h1>
+
+<% if (registrations.length === 0) { %>
+  <p>No registrations yet.</p>
+<% } else { %>
+  <table border="1">
+    <tr>
+      <th>Athlete</th>
+      <th>Approved</th>
+      <th>Actions</th>
+    </tr>
+    <% registrations.forEach(r => { %>
+      <tr>
+        <td><%= r.full_name %></td>
+        <td><%= r.approved ? '✅ Yes' : '❌ No' %></td>
+        <td>
+          <% if (!r.approved) { %>
+            <form method="POST" action="/tournaments/<%= tournament.id %>/approve/<%= r.athlete_id %>" style="display:inline;">
+              <button>Approve</button>
+            </form>
+          <% } %>
+          <form method="POST" action="/tournaments/<%= tournament.id %>/reject/<%= r.athlete_id %>" style="display:inline;">
+            <button>Reject</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+  </table>
+<% } %>

@@ -1,0 +1,51 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Athletes</h1>
+    <a href="/athletes/add" class="btn btn-primary">➕ Add Athlete</a>
+  </div>
+
+  <form action="/athletes/search" method="get">
+    <input type="text" name="query" placeholder="Search athletes..." value="<%= searchQuery || '' %>">
+    <button type="submit">Search</button>
+  </form>
+
+  <% if (athletes && athletes.length > 0) { %>
+  <table class="table table-striped table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Birth Date</th>
+        <th>Gender</th>
+        <th>Age Category</th>
+        <th>Weight Category</th>
+        <th>Points</th>
+        <th>Club</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% athletes.forEach(a => { %>
+      <tr>
+        <td><%= a.id %></td>
+        <td><%= a.full_name %></td>
+        <td><%= a.birth_date %></td>
+        <td><%= a.gender %></td>
+        <td><%= a.age_category_name || '-' %></td>
+        <td><%= a.weight_category_name || '-' %></td>
+        <td><%= a.total_points %></td>
+        <td><%= a.club_name || '-' %></td>
+        <td>
+          <a href="/athletes/edit/<%= a.id %>" class="btn btn-sm btn-warning">Edit</a>
+          <form action="/athletes/delete/<%= a.id %>" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this athlete?');">Delete</button>
+          </form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } else { %>
+  <div class="alert alert-info">No athletes found.</div>
+  <% } %>
+</div>

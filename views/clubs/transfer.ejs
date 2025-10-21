@@ -1,0 +1,12 @@
+<h1>Transfer Athlete: <%= athlete.first_name + ' ' + athlete.last_name %></h1>
+<form method="POST" action="/clubs/<%= athlete.club_id %>/athletes/<%= athlete.id %>/transfer">
+  <label>New Club:
+    <select name="newClubId">
+      <% clubs.forEach(c => { %>
+        <option value="<%= c.id %>"><%= c.name %></option>
+      <% }) %>
+    </select>
+  </label>
+  <button type="submit">Transfer</button>
+</form>
+<a href="/clubs/<%= athlete.club_id %>/athletes">Back</a>

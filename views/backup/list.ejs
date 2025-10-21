@@ -1,0 +1,23 @@
+<h1>Database Backups</h1>
+<a href="/backup">Create New Backup</a>
+
+<table border="1">
+<tr><th>Backup File</th><th>Actions</th></tr>
+<% backups.forEach(b => { %>
+<tr>
+  <td><%= b %></td>
+  <td>
+    <form style="display:inline" method="POST" action="/backup/restore">
+      <input type="hidden" name="backupFile" value="<%= b %>">
+      <button type="submit" onclick="return confirm('Restore this backup? Current DB will be overwritten!')">Restore</button>
+    </form>
+    <form style="display:inline" method="POST" action="/backup/delete">
+      <input type="hidden" name="backupFile" value="<%= b %>">
+      <button type="submit" onclick="return confirm('Delete this backup?')">Delete</button>
+    </form>
+  </td>
+</tr>
+<% }) %>
+</table>
+
+<a href="/">Back</a>

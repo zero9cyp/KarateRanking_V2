@@ -1,0 +1,36 @@
+<h1>⚙️ Override Athletes - <%= tournament.name %></h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Athlete</th>
+            <th>Age</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% registrations.forEach(r => { %>
+        <tr>
+            <td><%= r.full_name %></td>
+            <td><%= r.age %></td>
+            <td>
+                <% if (r.status === 'green') { %>
+                    <span class="badge bg-success">✔️ Allowed</span>
+                <% } else if (r.status === 'yellow') { %>
+                    <span class="badge bg-warning text-dark">⚠️ Check</span>
+                <% } else { %>
+                    <span class="badge bg-danger">❌ Not allowed</span>
+                <% } %>
+            </td>
+            <td>
+                <% if (r.status !== 'red' && !r.override_allowed) { %>
+                    <form method="POST" action="/tournaments/<%= tournament.id %>/override/<%= r.athlete_id %>" style="display:inline">
+                        <button class="btn btn-sm btn-primary">Apply Override</button>
+                    </form>
+                <% } %>
+            </td>
+        </tr>
+        <% }) %>
+    </tbody>
+</table>

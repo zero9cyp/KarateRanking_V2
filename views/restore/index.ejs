@@ -1,0 +1,17 @@
+<h1>Restore Database</h1>
+
+<h2>Upload a backup file</h2>
+<form method="post" enctype="multipart/form-data" action="/restore/upload">
+  <input type="file" name="backupFile" accept=".db" required />
+  <button>Upload & Restore</button>
+</form>
+
+<h2>Or select existing backup</h2>
+<form method="post" action="/restore/select">
+  <select name="backupName" required>
+    <% backups.forEach(file => { %>
+      <option value="<%= file %>"><%= file %></option>
+    <% }) %>
+  </select>
+  <button>Restore Selected</button>
+</form>

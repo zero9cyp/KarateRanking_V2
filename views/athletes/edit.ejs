@@ -1,0 +1,60 @@
+<div class="container mt-4">
+  <h1 class="mb-4">Edit Athlete</h1>
+
+  <form method="POST" action="/athletes/edit/<%= athlete.id %>" class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Full Name</label>
+      <input type="text" name="full_name" value="<%= athlete.full_name %>" class="form-control" required>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Birth Date</label>
+      <input type="date" name="birth_date" value="<%= athlete.birth_date %>" class="form-control" required>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Gender</label>
+      <select name="gender" class="form-select" required>
+        <option value="Male" <%= athlete.gender === 'Male' ? 'selected' : '' %>>Male</option>
+        <option value="Female" <%= athlete.gender === 'Female' ? 'selected' : '' %>>Female</option>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Age Category</label>
+      <select name="age_category_id" class="form-select" required>
+        <% ageCategories.forEach(c => { %>
+          <option value="<%= c.id %>" <%= c.id === athlete.age_category_id ? 'selected' : '' %>><%= c.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Weight Category</label>
+      <select name="weight_category_id" class="form-select" required>
+        <% weightCategories.forEach(c => { %>
+          <option value="<%= c.id %>" <%= c.id === athlete.weight_category_id ? 'selected' : '' %>><%= c.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Club</label>
+      <select name="club_id" class="form-select" required>
+        <% clubs.forEach(c => { %>
+          <option value="<%= c.id %>" <%= c.id === athlete.club_id ? 'selected' : '' %>><%= c.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Total Points</label>
+      <input type="number" name="total_points" class="form-control" value="<%= athlete.total_points %>">
+    </div>
+
+    <div class="col-12">
+      <button type="submit" class="btn btn-primary">Update Athlete</button>
+      <a href="/athletes" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>

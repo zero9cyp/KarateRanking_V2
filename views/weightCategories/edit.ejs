@@ -1,0 +1,15 @@
+<h1>Edit Weight Category</h1>
+<form method="POST" action="/weightCategories/edit/<%= category.id %>">
+  <select name="age_category_id" required>
+    <% ageCategories.forEach(ac => { %>
+      <option value="<%= ac.id %>" <%= ac.id===category.age_category_id ? 'selected' : '' %>><%= ac.name %></option>
+    <% }) %>
+  </select>
+  <select name="gender" required>
+    <option value="male" <%= category.gender==='male' ? 'selected' : '' %>>Male</option>
+    <option value="female" <%= category.gender==='female' ? 'selected' : '' %>>Female</option>
+  </select>
+  <input type="text" name="name" value="<%= category.name %>" required>
+  <button type="submit">Save</button>
+</form>
+<a href="/weightCategories">Back</a>

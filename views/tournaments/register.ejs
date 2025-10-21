@@ -1,0 +1,26 @@
+<div class="container mt-5">
+  <div class="card shadow-sm p-4">
+    <h2 class="card-title mb-4">Register Athlete for Tournament</h2>
+    <h5 class="mb-4">Tournament: <%= tournament.name %> (<%= tournament.date %>)</h5>
+
+    <% if (athletes.length === 0) { %>
+      <div class="alert alert-info">
+        All athletes are already registered for this tournament.
+      </div>
+    <% } else { %>
+      <form method="POST" action="/tournaments/<%= tournament.id %>/register">
+        <div class="mb-3">
+          <label for="athlete_id" class="form-label">Select Athlete</label>
+          <select class="form-select" id="athlete_id" name="athlete_id" required>
+            <% athletes.forEach(a => { %>
+              <option value="<%= a.id %>"><%= a.full_name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Register Athlete</button>
+        <a href="/tournaments" class="btn btn-secondary ms-2">Cancel</a>
+      </form>
+    <% } %>
+  </div>
+</div>

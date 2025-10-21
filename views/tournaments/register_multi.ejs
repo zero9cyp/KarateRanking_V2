@@ -1,0 +1,70 @@
+<div class="container mt-5">
+  <div class="card shadow p-4">
+    <h2 class="mb-4">Register Athletes for <%= tournament.name %></h2>
+
+    <!-- 🟢🟡🔴 FILTER BUTTONS -->
+    <div class="mb-3">
+      <button type="button" class="btn btn-outline-success me-2" onclick="filterStatus('green')">🟢 Eligible</button>
+      <button type="button" class="btn btn-outline-warning me-2" onclick="filterStatus('yellow')">🟡 Needs Approval</button>
+      <button type="button" class="btn btn-outline-danger me-2" onclick="filterStatus('red')">🔴 Not Eligible</button>
+      <button type="button" class="btn btn-outline-secondary" onclick="filterStatus('all')">Show All</button>
+    </div>
+
+    <form method="POST" action="/tournaments/<%= tournament.id %>/register-multi">
+      <table class="table table-striped align-middle" id="athleteTable">
+        <thead>
+          <tr>
+            <th>Select</th>
+            <th>Athlete</th>
+            <th>Age</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% athletes.forEach(a => { %>
+            <tr class="athlete-row <%= a.status %> <%= 
+                a.status === 'green' ? 'table-success' : 
+                a.status === 'yellow' ? 'table-warning' : 
+                'table-danger' %>">
+              <td>
+                <% if (a.status !== 'red') { %>
+                  <input type="checkbox" name="athlete_ids" value="<%= a.id %>">
+                <% } else { %>
+                  ❌
+                <% } %>
+              </td>
+              <td><%= a.full_name %></td>
+              <td><%= a.age %></td>
+              <td>
+                <% if (a.status === 'green') { %>
+                  ✅ Eligible
+                <% } else if (a.status === 'yellow') { %>
+                  ⚠️ Needs Coach Approval
+                <% } else { %>
+                  ❌ Not Eligible
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <button type="submit" class="btn btn-primary">Register Selected</button>
+      <a href="/tournaments" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+  </div>
+</div>
+
+<!-- 🧠 JS FILTER LOGIC -->
+<script>
+function filterStatus(status) {
+  const rows = document.querySelectorAll('.athlete-row');
+  rows.forEach(row => {
+    if (status === 'all') {
+      row.style.display = '';
+    } else {
+      row.style.display = row.classList.contains(status) ? '' : 'none';
+    }
+  });
+}
+</script>

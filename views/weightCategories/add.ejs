@@ -1,0 +1,15 @@
+<h1>Add Weight Category</h1>
+<form method="POST" action="/weightCategories/add">
+  <select name="age_category_id" required>
+    <% ageCategories.forEach(ac => { %>
+      <option value="<%= ac.id %>"><%= ac.name %></option>
+    <% }) %>
+  </select>
+  <select name="gender" required>
+    <option value="male">Male</option>
+    <option value="female">Female</option>
+  </select>
+  <input type="text" name="name" placeholder="Weight Category Name" required>
+  <button type="submit">Add</button>
+</form>
+<a href="/weightCategories">Back</a>

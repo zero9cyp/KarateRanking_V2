@@ -1,0 +1,28 @@
+<div class="container mt-5">
+  <h2 class="mb-4">Edit Tournament</h2>
+
+  <form action="/tournaments/edit/<%= tournament.id %>" method="POST">
+    <div class="mb-3">
+      <label for="name" class="form-label">Tournament Name</label>
+      <input type="text" class="form-control" id="name" name="name" value="<%= tournament.name %>" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="date" class="form-label">Date</label>
+      <input type="date" class="form-control" id="date" name="date" value="<%= tournament.date %>" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="type" class="form-label">Type</label>
+      <select class="form-select" id="type" name="type" required>
+        <option value="Local" <%= tournament.type === 'Local' ? 'selected' : '' %>>Local</option>
+        <option value="National" <%= tournament.type === 'National' ? 'selected' : '' %>>National</option>
+        <option value="International" <%= tournament.type === 'International' ? 'selected' : '' %>>International</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a href="/tournaments" class="btn btn-secondary ms-2">Cancel</a>
+  </form>
+</div>
+

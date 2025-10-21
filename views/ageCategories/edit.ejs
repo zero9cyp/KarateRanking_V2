@@ -1,0 +1,9 @@
+<h1>Edit Age Category</h1>
+<form method="POST" action="/ageCategories/edit/<%= category.id %>">
+  <input type="text" name="name" value="<%= category.name %>" required>
+  <input type="number" name="min_age" value="<%= category.min_age %>" required>
+  <input type="number" name="max_age" value="<%= category.max_age %>" required>
+  <input type="text" name="notes" value="<%= category.notes %>">
+  <button type="submit">Save</button>
+</form>
+<a href="/ageCategories">Back</a>

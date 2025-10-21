@@ -1,0 +1,32 @@
+<h1 class="mb-3">Weight Categories</h1>
+
+<a href="/weightCategories/add" class="btn btn-primary mb-3">Add Category</a>
+
+<div class="table-responsive">
+  <table class="table table-bordered table-striped w-100">
+    <thead class="table-dark">
+      <tr>
+        <th>Name</th>
+        <th>Gender</th>
+        <th>Age Category</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% categories.forEach(c => { %>
+      <tr>
+        <td><%= c.name %></td>
+        <td><%= c.gender %></td>
+        <td><%= c.age_category_name %></td>
+        <td>
+          <a href="/weightCategories/edit/<%= c.id %>" class="btn btn-sm btn-warning me-2">Edit</a>
+          <a href="/weightCategories/delete/<%= c.id %>" class="btn btn-sm btn-danger me-2" onclick="return confirm('Delete?')">Delete</a>
+          <a href="/weightCategories/<%= c.id %>/athletes" class="btn btn-sm btn-info">Athletes</a>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<a href="/" class="btn btn-secondary mt-3">Back</a>

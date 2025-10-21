@@ -1,0 +1,16 @@
+<h1>Admin/User Logs</h1>
+<a href="/logs/download">Download CSV</a>
+
+<table border="1">
+<tr><th>Timestamp</th><th>Admin</th><th>Action</th><th>Target User</th></tr>
+<% logs.forEach(l => { %>
+<tr>
+  <td><%= l.timestamp %></td>
+  <td><%= l.admin_name %></td>
+  <td><%= l.action %></td>
+  <td><%= l.target_user || '-' %></td>
+</tr>
+<% }) %>
+</table>
+
+<a href="/">Back</a>

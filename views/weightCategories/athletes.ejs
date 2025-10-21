@@ -1,0 +1,26 @@
+<h1 class="mb-3">Athletes in Weight Category</h1>
+
+<div class="table-responsive">
+  <table class="table table-bordered table-striped w-100">
+    <thead class="table-dark">
+      <tr>
+        <th>Full Name</th>
+        <th>Gender</th>
+        <th>Age Category</th>
+        <th>Total Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% athletes.forEach(a => { %>
+      <tr>
+        <td><%= a.full_name %></td>
+        <td><%= a.gender %></td>
+        <td><%= a.age_category %></td>
+        <td><%= a.total_points %></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<a href="/weightCategories" class="btn btn-secondary mt-3">Back</a>

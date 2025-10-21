@@ -1,0 +1,6 @@
+<h1>Edit Club</h1>
+<form method="POST" action="/clubs/edit/<%= club.id %>">
+  <input type="text" name="name" value="<%= club.name %>" required>
+  <button type="submit">Save</button>
+</form>
+<a href="/clubs">Back</a>
