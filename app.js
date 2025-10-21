@@ -1,4 +1,5 @@
 // app.js
+require('dotenv').config(); // <-- add this at the very top
 const express = require('express');
 const session = require('express-session');
 const flash = require('connect-flash');
@@ -22,12 +23,17 @@ app.set('layout', 'layout'); // default layout file in /views/layout.ejs
 // Sessions + flash
 app.use(
   session({
-    secret: 'karate_secret_key_change_this',
+    secret: process.env.SESSION_SECRET || 'mySuperSecretLocalDevKey',
     resave: false,
     saveUninitialized: true,
+    cookie: { maxAge: 2 * 60 * 60 * 1000 } // optional: 2 hours
   })
 );
+
 app.use(flash());
+
+// Make currentUser & messages available globally
+app.use(require('./middleware/globals'));
 
 // Make flash & user available in views
 app.use((req, res, next) => {

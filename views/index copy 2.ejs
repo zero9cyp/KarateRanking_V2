@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="el">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Karate Ranking Dashboard</title>
@@ -21,12 +21,6 @@
     h1 {
       font-weight: 700;
       color: #1d3557;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    h3 {
-      color: #457b9d;
       margin-bottom: 30px;
       text-align: center;
     }
@@ -83,63 +77,29 @@
     .year-card a:hover {
       background-color: #457b9d;
     }
-
-    .welcome-text {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .welcome-text p {
-      font-size: 1.1rem;
-      color: #555;
-    }
   </style>
 </head>
 <body>
-  <h1>🥋 Σύστημα Κατάταξης Καράτε</h1>
-  <h3>Καλώς Ήρθατε στο Σύστημα Αξιολόγησης Αθλητών</h3>
-
-  <div class="welcome-text">
-    <p>Επίσημο εργαλείο αξιολόγησης αθλητών με σεβασμό στις αρχές της ΚΟΕ & του ΚΟΑ.</p>
-    <p>Σε συνεργασία με την <a href="https://www.olympic.org.cy" target="_blank">ΚΟΕ</a> και τον <a href="https://cyprussports.org" target="_blank">ΚΟΑ</a>.</p>
-    <p>Η Κύπρος φιλοξένησε πρόσφατα το Ευρωπαϊκό Πρωτάθλημα Καράτε Cadet/Junior/U21 στη Λάρνακα με συμμετοχή 48 χωρών & 1136 αθλητών.</p>
-  </div>
-
-  <!-- Flash messages -->
-  <% if (success_msg.length > 0) { %>
-    <% success_msg.forEach(function(msg){ %>
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <%= msg %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    <% }) %>
-  <% } %>
-
-  <% if (error_msg.length > 0) { %>
-    <% error_msg.forEach(function(msg){ %>
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <%= msg %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    <% }) %>
-  <% } %>
+  <h1>Karate Ranking Dashboard</h1>
 
   <!-- Main Dashboard Links -->
   <div class="dashboard-links">
-    <a href="/athletes">📋 Διαχείριση Αθλητών</a>
-    <a href="/tournaments">🏆 Πρωταθλήματα</a>
-    <a href="/clubs">🏢 Διαχείριση Συλλόγων</a>
-    <a href="/ageCategories">📅 Ηλικιακές Κατηγορίες</a>
-    <a href="/weightCategories">⚖️ Κατηγορίες Βάρους</a>
-    <a href="/ranking">📊 Κατάταξη</a>
+    <a href="/athletes">Athletes</a>
+    <a href="/tournaments">Tournaments</a>
+    <a href="/clubs">Clubs</a>
+    <a href="/ageCategories">Age Categories</a>
+    <a href="/weightCategories">Weight Categories</a>
+    <a href="/ranking">Ranking</a>
     <% if(userRole === 'admin' || userRole === 'superuser') { %>
-      <a href="/logs">📝 Logs</a>
+      <a href="/logs">Logs</a>
+        <% } %>
+   <% if(userRole === 'admin') { %>
+      <a href="/logs">Logs</a>
+      <a href="/backup">Backup</a>
+      <a href="/restore">Restore</a>
     <% } %>
-    <% if(userRole === 'admin') { %>
-      <a href="/backup">💾 Backup</a>
-      <a href="/restore">♻️ Restore</a>
-    <% } %>
-    <a href="/auth/logout">🚪 Αποσύνδεση</a>
+
+    <a href="/auth/logout">Logout</a>
   </div>
 
   <!-- Year Preview Cards -->
@@ -156,7 +116,5 @@
       </div>
     <% } %>
   </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
