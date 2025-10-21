@@ -69,15 +69,37 @@ router.get('/delete/:id', ensureSuperuserOrAdmin, (req,res)=>{
 });
 
 // List athletes in a club
-router.get('/:id/athletes', ensureSuperuserOrAdmin, (req,res)=>{
+// View athletes of a club
+router.get('/:id/athletes', ensureSuperuserOrAdmin, (req, res) => {
     const clubId = req.params.id;
-    db.all(`SELECT id, first_name || ' ' || last_name AS full_name, total_points 
-            FROM athletes WHERE club_id=? ORDER BY total_points DESC`, [clubId], (err, athletes)=>{
-        db.get(`SELECT * FROM clubs WHERE id=?`, [clubId], (err2, club)=>{
+
+    // First, get the club name
+    db.get('SELECT * FROM clubs WHERE id = ?', [clubId], (err, club) => {
+        if (err || !club) {
+            req.flash('error_msg', 'Club not found');
+            return res.redirect('/clubs');
+        }
+
+        // Then get all athletes in that club
+        db.all(`
+            SELECT a.*, ac.name as age_category_name, wc.name as weight_category_name
+            FROM athletes a
+            LEFT JOIN age_categories ac ON a.age_category_id = ac.id
+            LEFT JOIN weight_categories wc ON a.weight_category_id = wc.id
+            WHERE a.club_id = ?
+            ORDER BY a.full_name
+        `, [clubId], (err2, athletes) => {
+            if (err2) {
+                console.error(err2);
+                req.flash('error_msg', 'Error loading athletes');
+                return res.redirect('/clubs');
+            }
+
             res.render('clubs/athletes', { club, athletes });
         });
     });
 });
+
 
 // Transfer athlete form
 router.get('/:clubId/athletes/:athleteId/transfer', ensureSuperuserOrAdmin, (req,res)=>{

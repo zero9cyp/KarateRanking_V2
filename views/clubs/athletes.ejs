@@ -1,14 +1,28 @@
-<h1>Athletes in <%= club.name %></h1>
-<table border="1">
-<tr><th>Name</th><th>Total Points</th><th>Actions</th></tr>
-<% athletes.forEach(a => { %>
-<tr>
-<td><%= a.full_name %></td>
-<td><%= a.total_points %></td>
-<td>
-  <a href="/clubs/<%= club.id %>/athletes/<%= a.id %>/transfer">Transfer</a>
-</td>
-</tr>
-<% }) %>
+<h1 class="mb-3">Athletes of <%= club.name %></h1>
+
+<a href="/clubs" class="btn btn-secondary mb-3">Back to Clubs</a>
+
+<table class="table table-bordered table-striped w-100">
+  <thead class="table-dark">
+    <tr>
+      <th>ID</th>
+      <th>Full Name</th>
+      <th>Gender</th>
+      <th>Age Category</th>
+      <th>Weight Category</th>
+      <th>Total Points</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% athletes.forEach(a => { %>
+      <tr>
+        <td><%= a.id %></td>
+        <td><%= a.full_name %></td>
+        <td><%= a.gender %></td>
+        <td><%= a.age_category_name || '—' %></td>
+        <td><%= a.weight_category_name || '—' %></td>
+        <td><%= a.total_points %></td>
+      </tr>
+    <% }) %>
+  </tbody>
 </table>
-<a href="/clubs">Back</a>
