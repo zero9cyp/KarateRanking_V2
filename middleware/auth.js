@@ -33,14 +33,6 @@ function logAction(adminId, action, targetUserId = null) {
   db.run(stmt, [adminId, action, targetUserId], () => {});
 }
 
-// routes/authRoutes.js (example)
-router.get('/logout', (req, res) => {
-  req.session.destroy(err => {
-    if (err) return res.redirect('/'); // fallback in case of error
-    res.clearCookie('connect.sid'); // optional, clears session cookie
-    res.redirect('/'); // <-- make sure this is a valid route, like your dashboard
-  });
-});
 
 
 module.exports = {
