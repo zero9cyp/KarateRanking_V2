@@ -4,6 +4,7 @@ const session = require('express-session');
 const flash = require('connect-flash');
 const path = require('path');
 const expressLayouts = require('express-ejs-layouts');
+const { ensureAuthenticated, ensureAdmin } = require('./middleware/auth');
 
 const app = express();
 
@@ -16,15 +17,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(expressLayouts);
-
 app.set('layout', 'layout'); // default layout file in /views/layout.ejs
 
 // Sessions + flash
-app.use(session({
-  secret: 'karate_secret_key_change_this',
-  resave: false,
-  saveUninitialized: true
-}));
+app.use(
+  session({
+    secret: 'karate_secret_key_change_this',
+    resave: false,
+    saveUninitialized: true,
+  })
+);
 app.use(flash());
 
 // Make flash & user available in views
@@ -35,9 +37,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// ROUTES - ensure these files exist under /routes or /middleware
+// ROUTES
 const indexRoutes = require('./routes/index');
-const authRoutes = require('./routes/authRoutes');           // router for /auth
+const authRoutes = require('./routes/authRoutes');
 const athletesRouter = require('./routes/athletes');
 const tournamentsRouter = require('./routes/tournaments');
 const clubsRouter = require('./routes/clubs');
@@ -48,21 +50,24 @@ const logsRouter = require('./routes/logs');
 const backupRouter = require('./routes/backup');
 const restoreRouter = require('./routes/restore');
 const computePointsRouter = require('./routes/computePoints');
-const rankingRoutes = require('./routes/ranking');
 
+// ✅ Public routes
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
-app.use('/athletes', athletesRouter);
-app.use('/tournaments', tournamentsRouter);
-app.use('/clubs', clubsRouter);
-app.use('/ageCategories', ageCategoriesRouter);
-app.use('/weightCategories', weightCategoriesRouter);
-app.use('/ranking', rankingRouter);
-app.use('/logs', logsRouter);
-app.use('/backup', backupRouter);
-app.use('/restore', restoreRouter);
-app.use('/compute-points', computePointsRouter);
-app.use('/ranking', rankingRoutes);
+app.use('/ranking', rankingRouter); // Public ranking view
+
+// ✅ Authenticated-only routes
+app.use('/athletes', ensureAuthenticated, athletesRouter);
+app.use('/tournaments', ensureAuthenticated, tournamentsRouter);
+app.use('/clubs', ensureAuthenticated, clubsRouter);
+app.use('/ageCategories', ensureAuthenticated, ageCategoriesRouter);
+app.use('/weightCategories', ensureAuthenticated, weightCategoriesRouter);
+app.use('/compute-points', ensureAuthenticated, computePointsRouter);
+
+// ✅ Admin-only routes
+app.use('/logs', ensureAdmin, logsRouter);
+app.use('/backup', ensureAdmin, backupRouter);
+app.use('/restore', ensureAdmin, restoreRouter);
 
 // Home route
 app.get('/', (req, res) => {
@@ -70,6 +75,13 @@ app.get('/', (req, res) => {
   res.redirect('/athletes');
 });
 
+// 404 fallback
+app.use((req, res) => {
+  res.status(404).render('404', { title: 'Page not found' });
+});
+
 // Start
 const PORT = process.env.PORT || 2025;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`✅ Server running on http://localhost:${PORT}`)
+);
