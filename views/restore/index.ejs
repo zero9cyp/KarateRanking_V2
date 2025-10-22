@@ -1,17 +1,58 @@
-<h1>Restore Database</h1>
+<div class="container mt-4">
+  <h1 class="mb-4 text-primary">Επαναφορά Βάσης Δεδομένων</h1>
 
-<h2>Upload a backup file</h2>
-<form method="post" enctype="multipart/form-data" action="/restore/upload">
-  <input type="file" name="backupFile" accept=".db" required />
-  <button>Upload & Restore</button>
-</form>
+  <!-- Upload a new backup -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-success text-white">
+      ➕ Ανέβασε & Επαναφορά
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data" action="/restore/upload" class="d-flex gap-2">
+        <input type="file" name="backupFile" accept=".db" class="form-control" required>
+        <button type="submit" class="btn btn-success">Ανέβασε & Επαναφορά</button>
+      </form>
+    </div>
+  </div>
 
-<h2>Or select existing backup</h2>
-<form method="post" action="/restore/select">
-  <select name="backupName" required>
-    <% backups.forEach(file => { %>
-      <option value="<%= file %>"><%= file %></option>
-    <% }) %>
-  </select>
-  <button>Restore Selected</button>
-</form>
+  <!-- List existing backups -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-info text-white">
+      📁 Υπάρχοντα αντίγραφα
+    </div>
+    <div class="card-body">
+      <% if (backups.length > 0) { %>
+      <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Αρχείο</th>
+            <th>Ημερομηνία Δημιουργίας</th>
+            <th>Ενέργειες</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% backups.forEach(file => { %>
+          <tr>
+            <td><%= file.name %></td>
+            <td><%= file.time %></td>
+            <td class="d-flex gap-2">
+              <form method="post" action="/restore/select">
+                <input type="hidden" name="backupName" value="<%= file.name %>">
+                <button class="btn btn-sm btn-primary" onclick="return confirm('Επαναφορά από αυτό το αντίγραφο;')">Επαναφορά</button>
+              </form>
+              <form method="post" action="/backup/delete">
+                <input type="hidden" name="backupFile" value="<%= file.name %>">
+                <button class="btn btn-sm btn-danger" onclick="return confirm('Διαγραφή αντιγράφου;')">Διαγραφή</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <div class="alert alert-info">Δεν βρέθηκαν αρχεία αντιγράφων.</div>
+      <% } %>
+    </div>
+  </div>
+
+  <a href="/" class="btn btn-secondary mt-3">Επιστροφή στην αρχική</a>
+</div>
