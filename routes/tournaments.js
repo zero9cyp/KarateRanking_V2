@@ -38,69 +38,16 @@ router.get('/add', ensureAdmin, (req, res) => {
 });
 
 // Submit add tournament
-// Handle Add Athlete POST safely
-router.post('/add', (req, res) => {
-  let { full_name, birth_date, gender, age_category_id, weight_category_id, total_points, club_id } = req.body;
-
-  // Normalize gender
-  gender = gender.toLowerCase();
-
-  // Validate required fields
-  if (!full_name || !birth_date || !gender) {
-    return res.status(400).send("Full name, birth date, and gender are required.");
-  }
-
-  // Convert foreign keys to integers or null
-  const ageId = age_category_id ? parseInt(age_category_id) : null;
-  const weightId = weight_category_id ? parseInt(weight_category_id) : null;
-  const clubId = club_id ? parseInt(club_id) : null;
-  total_points = total_points ? parseInt(total_points) : 0;
-
-  // Helper function to check foreign key exists
-  function checkFK(table, id, callback) {
-    if (id === null) return callback(true); // allow null
-    db.get(`SELECT id FROM ${table} WHERE id = ?`, [id], (err, row) => {
-      if (err) return callback(false);
-      callback(!!row);
+router.post('/add', ensureAdmin, (req, res) => {
+    const { name, date, location, type, difficulty_multiplier, is_international, requires_approval } = req.body;
+    const stmt = `INSERT INTO tournaments 
+        (name,date,location,type,difficulty_multiplier,is_international,requires_approval)
+        VALUES (?,?,?,?,?,?,?)`;
+    db.run(stmt, [name, date, location, type, difficulty_multiplier || 1, is_international || 0, requires_approval || 0], function(err){
+        if(err) req.flash('error_msg', err.message);
+        else req.flash('success_msg','Tournament added!');
+        res.redirect('/tournaments');
     });
-  }
-
-  // Check age_category_id
-  checkFK('age_categories', ageId, (ageOk) => {
-    if (!ageOk) return res.status(400).send("Invalid age category ID.");
-
-    // Check weight_category_id
-    checkFK('weight_categories', weightId, (weightOk) => {
-      if (!weightOk) return res.status(400).send("Invalid weight category ID.");
-
-      // Check club_id
-      checkFK('clubs', clubId, (clubOk) => {
-        if (!clubOk) return res.status(400).send("Invalid club ID.");
-
-        // All checks passed, safe to insert
-        const sql = `
-          INSERT INTO athletes 
-            (full_name, birth_date, gender, age_category_id, weight_category_id, total_points, club_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        db.run(sql, [full_name, birth_date, gender, ageId, weightId, total_points, clubId], function(err) {
-          if (err) {
-            if (err.code === 'SQLITE_CONSTRAINT') {
-              console.error("Constraint violation:", err.message);
-              return res.status(400).send("Database constraint violation: check input values.");
-            }
-            console.error(err);
-            return res.status(500).send("Database error.");
-          }
-
-          res.redirect('/athletes');
-        });
-
-      });
-    });
-  });
-
 });
 
 // Edit tournament form
@@ -313,6 +260,7 @@ router.post('/:tournamentId/override/:athleteId', ensureAdminOrCoach, (req,res)=
         res.redirect(`/tournaments/${tournamentId}/registrations`);
     });
 });
+
 
 // Apply override
 router.post('/:tournamentId/override/:athleteId', ensureAdminOrCoach, (req,res)=>{
