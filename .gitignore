@@ -1,3 +1,5 @@
 node_modules/
 .env
 .sqlite
+ db/karate_ranking.db
+ .db
