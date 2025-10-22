@@ -1,0 +1,40 @@
+<div class="container mt-5">
+  <h1 class="fw-bold text-primary mb-4">
+    📈 Points History
+  </h1>
+
+  <a href="/athletes" class="btn btn-secondary mb-3">← Back to Athletes</a>
+
+  <% if (history && history.length > 0) { %>
+  <div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover align-middle">
+      <thead class="table-dark">
+        <tr class="text-center">
+          <th>Date</th>
+          <th>Tournament</th>
+          <th>Change</th>
+          <th>Total After</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% history.forEach(h => { %>
+        <tr class="text-center">
+          <td><%= h.date %></td>
+          <td><%= h.tournament_name || '-' %></td>
+          <td class="<%= h.change > 0 ? 'text-success' : 'text-danger' %> fw-bold">
+            <%= h.change > 0 ? '+' + h.change : h.change %>
+          </td>
+          <td><%= h.total_after %></td>
+          <td><%= h.notes || '-' %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } else { %>
+  <div class="alert alert-info shadow-sm text-center">
+    No point history found for this athlete.
+  </div>
+  <% } %>
+</div>

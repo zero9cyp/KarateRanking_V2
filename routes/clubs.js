@@ -14,11 +14,28 @@ function ensureSuperuserOrAdmin(req,res,next){
 
 // -------------------------
 // List all clubs
-router.get('/', ensureSuperuserOrAdmin, (req,res)=>{
-    db.all(`SELECT * FROM clubs ORDER BY name`, [], (err, clubs)=>{
-        res.render('clubs/index', { clubs });
-    });
+router.get('/', ensureSuperuserOrAdmin, (req, res) => {
+  const sql = `
+    SELECT 
+      c.id, 
+      c.name,
+      COUNT(a.id) AS athlete_count
+    FROM clubs c
+    LEFT JOIN athletes a ON a.club_id = c.id
+    GROUP BY c.id
+    ORDER BY c.name
+  `;
+
+  db.all(sql, [], (err, clubs) => {
+    if (err) {
+      console.error('Error fetching clubs:', err);
+      return res.status(500).send('Database error');
+    }
+
+    res.render('clubs/index', { clubs });
+  });
 });
+
 
 // Add club form
 router.get('/add', ensureSuperuserOrAdmin, (req,res)=>{

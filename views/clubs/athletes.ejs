@@ -11,6 +11,7 @@
       <th>Age Category</th>
       <th>Weight Category</th>
       <th>Total Points</th>
+      <th>Actions</th> <!-- ✅ New -->
     </tr>
   </thead>
   <tbody>
@@ -22,6 +23,12 @@
         <td><%= a.age_category_name || '—' %></td>
         <td><%= a.weight_category_name || '—' %></td>
         <td><%= a.total_points %></td>
+        <td>
+          <a href="/athletes/move/<%= a.id %>" class="btn btn-sm btn-info"
+             onclick="return confirm('Move this athlete to another club?');">
+             Move
+          </a>
+        </td>
       </tr>
     <% }) %>
   </tbody>

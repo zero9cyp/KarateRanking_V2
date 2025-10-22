@@ -1,0 +1,25 @@
+<div class="container mt-4">
+  <h1>Move Athlete</h1>
+  <p>Move <strong><%= athlete.full_name %></strong> to another club:</p>
+
+  <form method="POST" action="/athletes/move/<%= athlete.id %>">
+    <div class="mb-3">
+      <label class="form-label">Select New Club</label>
+      <select name="club_id" class="form-select" required>
+        <option value="">--Select--</option>
+        <% clubs.forEach(c => { %>
+        <option value="<%= c.id %>" <%= c.id === athlete.club_id ? 'selected' : '' %>>
+          <%= c.name %>
+        </option>
+        <% }) %>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-success">
+      Move Athlete
+    </button>
+
+
+    <a href="/clubs/<%= athlete.club_id %>/athletes" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>

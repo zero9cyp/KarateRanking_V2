@@ -1,0 +1,40 @@
+<div class="container mt-5">
+  <h1 class="fw-bold text-primary mb-4">
+    🥋 Tournaments Participated
+  </h1>
+
+  <a href="/athletes" class="btn btn-secondary mb-3">← Back to Athletes</a>
+
+  <% if (tournaments && tournaments.length > 0) { %>
+  <div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover align-middle">
+      <thead class="table-dark">
+        <tr class="text-center">
+          <th>Date</th>
+          <th>Name</th>
+          <th>Location</th>
+          <th>Category</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% tournaments.forEach(t => { %>
+        <tr class="text-center">
+          <td><%= t.date %></td>
+          <td><%= t.name %></td>
+          <td><%= t.location || '-' %></td>
+          <td><%= t.category || '-' %></td>
+          <td class="fw-semibold <%= t.result === 'Win' ? 'text-success' : 'text-danger' %>">
+            <%= t.result || '-' %>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } else { %>
+  <div class="alert alert-info shadow-sm text-center">
+    This athlete has not participated in any tournaments yet.
+  </div>
+  <% } %>
+</div>

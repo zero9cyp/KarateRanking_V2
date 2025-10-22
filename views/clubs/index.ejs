@@ -8,6 +8,7 @@
       <tr>
         <th>ID</th>
         <th>Name</th>
+        <th>Athletes</th> <!-- ✅ New -->
         <th>Actions</th>
       </tr>
     </thead>
@@ -16,6 +17,11 @@
       <tr>
         <td><%= c.id %></td>
         <td><a href="/clubs/<%= c.id %>/athletes"><%= c.name %></a></td>
+        <td>
+          <a href="/clubs/<%= c.id %>/athletes" class="text-decoration-none">
+            <strong><%= c.athlete_count %></strong>
+          </a>
+        </td>
         <td>
           <a href="/clubs/edit/<%= c.id %>" class="btn btn-sm btn-warning me-2">Edit</a>
           <a href="/clubs/delete/<%= c.id %>" class="btn btn-sm btn-danger" onclick="return confirm('Delete club?')">Delete</a>
