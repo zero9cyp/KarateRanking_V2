@@ -1,10 +1,11 @@
 // app.js
-require('dotenv').config(); // <-- add this at the very top
+require('dotenv').config(); // <-- add this at the very top to use .env
 const express = require('express');
 const session = require('express-session');
 const flash = require('connect-flash');
 const path = require('path');
 const expressLayouts = require('express-ejs-layouts');
+
 const { ensureAuthenticated, ensureAdmin } = require('./middleware/auth');
 
 const app = express();
@@ -88,6 +89,7 @@ app.use((req, res) => {
 
 // Start
 const PORT = process.env.PORT || 2025;
+
 app.listen(PORT, () =>
   console.log(`✅ Server running on http://localhost:${PORT}`)
 );
