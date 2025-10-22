@@ -179,6 +179,14 @@ router.get('/delete/:id', (req, res) => {
   });
 });
 
+router.post('/delete/:id', (req, res) => {
+  const id = req.params.id;
+  db.run('DELETE FROM athletes WHERE id = ?', [id], (err) => {
+    if (err) return console.error(err);
+    res.redirect('/athletes');
+  });
+});
+
 // Search athletes by name (GET /athletes/search?query=...)
 router.get('/search', (req, res) => {
   const query = req.query.query || '';
