@@ -1,0 +1,99 @@
+<h1>Dashboard Διαχείρισης Αθλητών</h1>
+
+<div class="mb-3">
+  <label for="ageCategorySelect" class="form-label">Επιλέξτε Ηλικιακή Κατηγορία:</label>
+  <select id="ageCategorySelect" class="form-select">
+    <option value="">-- Επιλέξτε --</option>
+    <% ageCategories.forEach(cat => { %>
+      <option value="<%= cat.id %>"><%= cat.name %></option>
+    <% }) %>
+  </select>
+</div>
+
+<div class="table-responsive">
+ <table id="athletesTable" class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th>Αθλητής</th>
+      <th>Σύλλογος</th>
+      <th>Κατηγορία Βάρους</th>
+      <th>Συνολικοί Πόντοι</th>
+      <th>Τουρνουά</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+  select.addEventListener('change', () => {
+    const ageCategoryId = select.value;
+    if(!ageCategoryId) return tableBody.innerHTML = '';
+
+    fetch(`/dashboard/age/${ageCategoryId}`)
+      .then(res => res.json())
+      .then(data => {
+        if(data.success) {
+          tableBody.innerHTML = '';
+          data.athletes.forEach(a => {
+            const tournamentsHtml = a.tournaments.map(t => {
+              return `
+                <div>
+                  <strong>${t.name}</strong> (${t.date})
+                  - Θέση: ${t.placement || '-'}
+                  - Νίκες: ${t.wins || 0}
+                  - Συμμετοχές: ${t.participated || 0}
+                  - Πόντοι: ${t.points_earned || 0}
+                </div>
+              `;
+            }).join('');
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${a.full_name}</td>
+              <td>${a.club_name || '-'}</td>
+              <td>${a.weight_category || '-'}</td>
+              <td>${a.total_points}</td>
+              <td>${tournamentsHtml || '-'}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+        } else {
+          alert(data.error);
+        }
+      })
+      .catch(err => console.error(err));
+  });
+</script>
+
+</div>
+
+<script>
+  const select = document.getElementById('ageCategorySelect');
+  const tableBody = document.querySelector('#athletesTable tbody');
+
+  select.addEventListener('change', () => {
+    const ageCategoryId = select.value;
+    if(!ageCategoryId) return tableBody.innerHTML = '';
+
+    fetch(`/dashboard/age/${ageCategoryId}`)
+      .then(res => res.json())
+      .then(data => {
+        if(data.success) {
+          tableBody.innerHTML = '';
+          data.athletes.forEach(a => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${a.full_name}</td>
+              <td>${a.club_name || '-'}</td>
+              <td>${a.weight_category || '-'}</td>
+              <td>${a.total_points}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+        } else {
+          alert(data.error);
+        }
+      })
+      .catch(err => console.error(err));
+  });
+</script>

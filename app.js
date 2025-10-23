@@ -54,6 +54,7 @@ app.use((req, res, next) => {
 
 // ROUTES
 // const indexRoutes = require('./routes/index');
+const dashboardRouter = require('./routes/dashboard'); // new
 const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/authRoutes');
 const athletesRouter = require('./routes/athletes');
@@ -87,6 +88,13 @@ app.use('/clubs', ensureAuthenticated, clubsRouter);
 app.use('/ageCategories', ensureAuthenticated, ageCategoriesRouter);
 app.use('/weightCategories', ensureAuthenticated, weightCategoriesRouter);
 app.use('/compute-points', ensureAuthenticated, computePointsRouter);
+
+// ✅ Coach/Admin Dashboard
+app.use('/dashboard', dashboardRouter); // NEW
+// Dashboard route (for logged-in users, can also be public if you want)
+app.get('/dashboard', (req, res) => {
+  res.render('dashboard', { title: 'Dashboard', currentUser: req.session.user });
+});
 
 // ✅ Admin-only routes
 app.use('/logs', ensureAdmin, logsRouter);
