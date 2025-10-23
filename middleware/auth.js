@@ -34,7 +34,6 @@ function logAction(adminId, action, targetUserId = null) {
 }
 
 
-
 module.exports = {
   ensureAuthenticated,
   ensureAdmin,

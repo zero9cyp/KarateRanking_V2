@@ -33,6 +33,14 @@ app.use(
 
 app.use(flash());
 
+app.use((req, res, next) => {
+  res.locals.currentUser = req.session.user || null;
+  res.locals.success_msg = req.flash('success_msg') || [];
+  res.locals.error_msg = req.flash('error_msg') || [];
+  next();
+});
+
+
 // Make currentUser & messages available globally
 app.use(require('./middleware/globals'));
 
@@ -45,6 +53,7 @@ app.use((req, res, next) => {
 });
 
 // ROUTES
+// const indexRoutes = require('./routes/index');
 const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/authRoutes');
 const athletesRouter = require('./routes/athletes');
@@ -56,12 +65,14 @@ const rankingRouter = require('./routes/ranking');
 const logsRouter = require('./routes/logs');
 const backupRouter = require('./routes/backup');
 const restoreRouter = require('./routes/restore');
-const computePointsRouter = require('./routes/computePoints');
+const computePointsRouter = require('./routes/computePoints')
+app.use('/users', ensureAdmin, require('./routes/users'));
 
 // ✅ Public routes
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/ranking', rankingRouter); // Public ranking view
+app.use('/users', ensureAdmin, require('./routes/users'));
 
 // ✅ Authenticated-only routes
 app.use('/athletes', ensureAuthenticated, athletesRouter);
@@ -78,8 +89,8 @@ app.use('/restore', ensureAdmin, restoreRouter);
 
 // Home route
 app.get('/', (req, res) => {
-  if (!req.session.user) return res.redirect('/auth/login');
-  res.redirect('/athletes');
+  if (req.session.user) return res.redirect('/athletes');
+  res.render('home', { title: 'Karate Ranking' });
 });
 
 // 404 fallback

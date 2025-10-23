@@ -1,0 +1,22 @@
+<div class="text-center mt-5">
+  <!-- Logo -->
+  <img src="/images/your-logo.png" alt="Karate Ranking Logo" class="img-fluid mb-4" style="max-width: 200px;">
+
+  <!-- Welcome Message -->
+  <h1 class="mb-3">🥋 Σύστημα Κατάταξης Καράτε</h1>
+  <p class="lead mb-4">
+    Καλώς ήρθατε στο επίσημο εργαλείο αξιολόγησης αθλητών με σεβασμό στις αρχές της ΚΟΕ & του ΚΟΑ.
+  </p>
+  <p class="mb-4">
+    Προεπισκόπηση κατάταξης αθλητών ανά κατηγορίες ηλικίας και βάρος, χωρίς να χρειάζεται σύνδεση.
+  </p>
+
+  <!-- Main Actions -->
+  <div class="d-flex justify-content-center gap-3 flex-wrap">
+    <a href="/ranking" class="btn btn-warning btn-lg fw-bold shadow">📊 Δείτε την Κατάταξη</a>
+    <% if(!currentUser) { %>
+      <a href="/auth/login" class="btn btn-primary btn-lg fw-bold shadow">🔑 Σύνδεση</a>
+      <a href="/auth/register" class="btn btn-success btn-lg fw-bold shadow">📝 Εγγραφή</a>
+    <% } %>
+  </div>
+</div>

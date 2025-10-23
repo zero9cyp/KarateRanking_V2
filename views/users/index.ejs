@@ -1,0 +1,54 @@
+<h1>Διαχείριση Χρηστών</h1>
+
+<a href="/users/add" class="btn btn-success mb-3">Προσθήκη Χρήστη</a>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Όνομα χρήστη</th>
+      <th>Ρόλος</th>
+      <th>Κατάσταση</th>
+      <th>Ενέργειες</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% users.forEach(user => { %>
+      <tr>
+        <td><%= user.id %></td>
+        <td><%= user.username %></td>
+        <td><%= user.role %></td>
+        <td>
+          <% if (user.isActive) { %>
+            <span class="badge bg-success">Ενεργός</span>
+          <% } else { %>
+            <span class="badge bg-danger">Ανενεργός</span>
+          <% } %>
+        </td>
+        <td>
+          <!-- Edit role -->
+          <a href="/users/edit/<%= user.id %>" class="btn btn-primary btn-sm me-1">Επεξεργασία Ρόλου</a>
+
+          <!-- Reset password -->
+          <a href="/users/reset-password/<%= user.id %>" class="btn btn-warning btn-sm me-1">Επαναφορά Κωδικού</a>
+
+          <!-- Activate/Deactivate -->
+          <% if(user.isActive) { %>
+            <form method="POST" action="/users/deactivate/<%= user.id %>" style="display:inline;">
+              <button type="submit" class="btn btn-secondary btn-sm me-1">Απενεργοποίηση</button>
+            </form>
+          <% } else { %>
+            <form method="POST" action="/users/activate/<%= user.id %>" style="display:inline;">
+              <button type="submit" class="btn btn-success btn-sm me-1">Ενεργοποίηση</button>
+            </form>
+          <% } %>
+
+          <!-- Delete user -->
+          <form method="POST" action="/users/delete/<%= user.id %>" style="display:inline;" onsubmit="return confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον χρήστη;');">
+            <button type="submit" class="btn btn-danger btn-sm">Διαγραφή</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>

@@ -1,0 +1,24 @@
+<h1>Επεξεργασία Χρήστη</h1>
+
+<form action="/users/edit/<%= user.id %>" method="POST">
+  <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+
+  <div class="mb-3">
+    <label>Όνομα χρήστη</label>
+    <input type="text" value="<%= user.username %>" class="form-control" disabled>
+  </div>
+
+  <div class="mb-3">
+    <label>Ρόλος</label>
+    <select name="role" class="form-select" required>
+      <option value="user" <%= user.role === 'user' ? 'selected' : '' %>>user</option>
+      <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>admin</option>
+      <option value="superuser" <%= user.role === 'superuser' ? 'selected' : '' %>>superuser</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Αποθήκευση</button>
+  <a href="/users" class="btn btn-secondary">Άκυρο</a>
+</form>

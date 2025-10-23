@@ -3,11 +3,13 @@ const router = express.Router();
 const { ensureAuthenticated } = require('../middleware/auth');
 
 router.get('/', ensureAuthenticated, (req, res) => {
-  const userRole = req.session.user.role;
-  const currentUser = req.session.user; // ✅ Pass the logged-in user
-
-  // Pass message as null by default
-  res.render('index', { userRole, currentUser, message: null });
+  const currentUser = req.session.user;
+  res.render('index', {
+    currentUser,
+    userRole: currentUser ? currentUser.role : null,
+    success_msg: req.flash('success_msg') || [],
+    error_msg: req.flash('error_msg') || []
+  });
 });
 
 // routes/authRoutes.js (example)
