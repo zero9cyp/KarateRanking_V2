@@ -68,6 +68,12 @@ const restoreRouter = require('./routes/restore');
 const computePointsRouter = require('./routes/computePoints')
 app.use('/users', ensureAdmin, require('./routes/users'));
 
+// Home route
+app.get('/', (req, res) => {
+  if (req.session.user) return res.redirect('/athletes');
+  res.render('home', { title: 'Karate Ranking' });
+});
+
 // ✅ Public routes
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
@@ -86,12 +92,6 @@ app.use('/compute-points', ensureAuthenticated, computePointsRouter);
 app.use('/logs', ensureAdmin, logsRouter);
 app.use('/backup', ensureAdmin, backupRouter);
 app.use('/restore', ensureAdmin, restoreRouter);
-
-// Home route
-app.get('/', (req, res) => {
-  if (req.session.user) return res.redirect('/athletes');
-  res.render('home', { title: 'Karate Ranking' });
-});
 
 // 404 fallback
 app.use((req, res) => {
