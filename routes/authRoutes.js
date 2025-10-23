@@ -21,7 +21,7 @@ router.post('/login', (req, res) => {
       if (match) {
         req.session.user = { id: user.id, username: user.username, role: user.role };
         logAction(user.id, 'User logged in', null);
-        return res.redirect('/');
+        return res.redirect('/index'); // ✅ redirect to private page
       }
       req.flash('error_msg', 'Invalid credentials');
       return res.redirect('/auth/login');

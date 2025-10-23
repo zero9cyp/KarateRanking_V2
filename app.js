@@ -1,5 +1,10 @@
 // app.js
-require('dotenv').config(); // <-- add this at the very top to use .env
+
+// -------------------------------
+// Load environment variables
+// -------------------------------
+require('dotenv').config(); // Must be first line
+
 const express = require('express');
 const session = require('express-session');
 const flash = require('connect-flash');
@@ -10,51 +15,65 @@ const { ensureAuthenticated, ensureAdmin } = require('./middleware/auth');
 
 const app = express();
 
-// Body parsing
+// -------------------------------
+// Safety check for SESSION_SECRET
+// -------------------------------
+if (!process.env.SESSION_SECRET) {
+  throw new Error('❌ SESSION_SECRET is not set in your .env file');
+}
+
+// -------------------------------
+// Body parsing middleware
+// -------------------------------
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Static + views
+// -------------------------------
+// Static files & views
+// -------------------------------
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(expressLayouts);
 app.set('layout', 'layout'); // default layout file in /views/layout.ejs
 
-// Sessions + flash
+// -------------------------------
+// Session middleware
+// Must come before flash and routes
+// -------------------------------
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'mySuperSecretLocalDevKey',
+    secret: process.env.SESSION_SECRET, // only from .env
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 2 * 60 * 60 * 1000 } // optional: 2 hours
+    cookie: { maxAge: 2 * 60 * 60 * 1000 } // 2 hours
   })
 );
 
+// -------------------------------
+// Flash messages
+// -------------------------------
 app.use(flash());
 
+// -------------------------------
+// Global middleware for views
+// Sets user and flash messages for all templates
+// -------------------------------
 app.use((req, res, next) => {
-  res.locals.currentUser = req.session.user || null;
-  res.locals.success_msg = req.flash('success_msg') || [];
-  res.locals.error_msg = req.flash('error_msg') || [];
-  next();
-});
-
-
-// Make currentUser & messages available globally
-app.use(require('./middleware/globals'));
-
-// Make flash & user available in views
-app.use((req, res, next) => {
+  res.locals.currentUser = req.session.user || null; // logged-in user
+  res.locals.user = req.session.user || null;       // alias for templates
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
-  res.locals.user = req.session.user || null;
   next();
 });
 
+// Optional: import custom globals middleware if needed
+// app.use(require('./middleware/globals'));
+
+// -------------------------------
 // ROUTES
-// const indexRoutes = require('./routes/index');
-const dashboardRouter = require('./routes/dashboard'); // new
+// -------------------------------
+const dashboardRouter = require('./routes/dashboard');
 const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/authRoutes');
 const athletesRouter = require('./routes/athletes');
@@ -66,22 +85,26 @@ const rankingRouter = require('./routes/ranking');
 const logsRouter = require('./routes/logs');
 const backupRouter = require('./routes/backup');
 const restoreRouter = require('./routes/restore');
-const computePointsRouter = require('./routes/computePoints')
-app.use('/users', ensureAdmin, require('./routes/users'));
+const computePointsRouter = require('./routes/computePoints');
 
+// -------------------------------
 // Home route
+// -------------------------------
 app.get('/', (req, res) => {
-  if (req.session.user) return res.redirect('/athletes');
+  // if (req.session.user) return res.redirect('/athletes');
   res.render('home', { title: 'Karate Ranking' });
 });
 
-// ✅ Public routes
+// -------------------------------
+// Public routes
+// -------------------------------
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/ranking', rankingRouter); // Public ranking view
-app.use('/users', ensureAdmin, require('./routes/users'));
-
-// ✅ Authenticated-only routes
+app.use('/index', ensureAuthenticated, indexRoutes);
+// -------------------------------
+// Authenticated-only routes
+// -------------------------------
 app.use('/athletes', ensureAuthenticated, athletesRouter);
 app.use('/tournaments', ensureAuthenticated, tournamentsRouter);
 app.use('/clubs', ensureAuthenticated, clubsRouter);
@@ -89,25 +112,33 @@ app.use('/ageCategories', ensureAuthenticated, ageCategoriesRouter);
 app.use('/weightCategories', ensureAuthenticated, weightCategoriesRouter);
 app.use('/compute-points', ensureAuthenticated, computePointsRouter);
 
-// ✅ Coach/Admin Dashboard
-app.use('/dashboard', dashboardRouter); // NEW
-// Dashboard route (for logged-in users, can also be public if you want)
+// -------------------------------
+// Coach/Admin Dashboard
+// -------------------------------
+app.use('/dashboard', dashboardRouter);
 app.get('/dashboard', (req, res) => {
   res.render('dashboard', { title: 'Dashboard', currentUser: req.session.user });
 });
 
-// ✅ Admin-only routes
+// -------------------------------
+// Admin-only routes
+// -------------------------------
+app.use('/users', ensureAdmin, require('./routes/users'));
 app.use('/logs', ensureAdmin, logsRouter);
 app.use('/backup', ensureAdmin, backupRouter);
 app.use('/restore', ensureAdmin, restoreRouter);
 
+// -------------------------------
 // 404 fallback
+// -------------------------------
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Page not found' });
 });
 
-// Start
-const PORT = process.env.PORT || 2025;
+// -------------------------------
+// Start server
+// -------------------------------
+const PORT = process.env.PORT;
 
 app.listen(PORT, () =>
   console.log(`✅ Server running on http://localhost:${PORT}`)
