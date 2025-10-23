@@ -7,65 +7,63 @@ const db = new sqlite3.Database('./db/karate_ranking.db');
 const { ensureAuthenticated, ensureAdminOrCoach } = require('../middleware/auth');
 
 router.get('/', ensureAuthenticated, ensureAdminOrCoach, (req, res) => {
-  const sql = `SELECT * FROM age_categories ORDER BY min_age ASC`;
-  db.all(sql, [], (err, ageCategories) => {
+  db.all(`SELECT * FROM age_categories ORDER BY min_age ASC`, [], (err, ageCategories) => {
     if (err) {
       console.error(err);
-      req.flash('error_msg', 'Σφάλμα στη βάση δεδομένων');
       return res.render('dashboard', { ageCategories: [], athletes: [] });
     }
     res.render('dashboard', { ageCategories, athletes: [] });
   });
 });
 
-// API για να φέρει αθλητές ανά ηλικιακή κατηγορία
 router.get('/age/:ageCategoryId', ensureAuthenticated, ensureAdminOrCoach, (req, res) => {
   const ageCategoryId = req.params.ageCategoryId;
 
   const sql = `
-    SELECT a.id, a.full_name, a.total_points, c.name AS club_name, wc.name AS weight_category,
-           tr.tournament_name, tr.date AS tournament_date, tr.placement, tr.wins, tr.participated, tr.points_earned
+    SELECT a.id AS athlete_id, a.full_name, a.total_points, c.name AS club_name,
+           wc.name AS weight_category,
+           r.tournament_id, t.name AS tournament_name, t.date AS tournament_date,
+           r.placement, r.wins, r.participated, r.points_earned
     FROM athletes a
     LEFT JOIN clubs c ON a.club_id = c.id
     LEFT JOIN weight_categories wc ON a.weight_category_id = wc.id
-    LEFT JOIN tournament_results tr ON a.id = tr.athlete_id
+    LEFT JOIN results r ON a.id = r.athlete_id
+    LEFT JOIN tournaments t ON r.tournament_id = t.id
     WHERE a.age_category_id = ?
-    ORDER BY a.full_name, tr.date DESC
+    ORDER BY a.full_name, t.date DESC
   `;
 
   db.all(sql, [ageCategoryId], (err, rows) => {
-    if (err) {
-      console.error(err);
-      return res.json({ success: false, error: 'Σφάλμα στη βάση δεδομένων' });
-    }
+    if (err) return res.json({ success: false, error: err.message });
 
-    // Ομαδοποίηση ανά αθλητή
-    const athletes = {};
-    rows.forEach(r => {
-      if (!athletes[r.id]) {
-        athletes[r.id] = {
-          id: r.id,
-          full_name: r.full_name,
-          club_name: r.club_name,
-          weight_category: r.weight_category,
-          total_points: r.total_points,
+    const athletesMap = {};
+    rows.forEach(row => {
+      if (!athletesMap[row.athlete_id]) {
+        athletesMap[row.athlete_id] = {
+          id: row.athlete_id,
+          full_name: row.full_name,
+          club_name: row.club_name,
+          weight_category: row.weight_category,
+          total_points: row.total_points,
           tournaments: []
         };
       }
-      if (r.tournament_name) {
-        athletes[r.id].tournaments.push({
-          name: r.tournament_name,
-          date: r.tournament_date,
-          placement: r.placement,
-          wins: r.wins,
-          participated: r.participated,
-          points_earned: r.points_earned
+      if (row.tournament_id) {
+        athletesMap[row.athlete_id].tournaments.push({
+          tournament_id: row.tournament_id,
+          name: row.tournament_name,
+          date: row.tournament_date,
+          placement: row.placement,
+          wins: row.wins,
+          participated: row.participated,
+          points_earned: row.points_earned
         });
       }
     });
 
-    res.json({ success: true, athletes: Object.values(athletes) });
+    res.json({ success: true, athletes: Object.values(athletesMap) });
   });
 });
+
 
 module.exports = router;

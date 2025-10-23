@@ -6,6 +6,25 @@
   <a href="/athletes" class="btn btn-secondary mb-3">← Back to Athletes</a>
 
   <% if (tournaments && tournaments.length > 0) { %>
+
+  <!-- 🏆 Medal Summary -->
+  <%
+    let gold = 0, silver = 0, bronze = 0;
+    tournaments.forEach(t => {
+      if (t.placement === 1 || t.result === 'Win') gold++;
+      else if (t.placement === 2 || t.result === 'Finalist') silver++;
+      else if (t.placement === 3 || t.result === '3rd Place') bronze++;
+    });
+  %>
+  <div class="alert alert-light border shadow-sm mb-4 text-center">
+    <h5 class="fw-bold mb-0">
+      🥇 Gold: <span class="text-warning"><%= gold %></span> &nbsp; | &nbsp;
+      🥈 Silver: <span class="text-secondary"><%= silver %></span> &nbsp; | &nbsp;
+      🥉 Bronze: <span class="text-info"><%= bronze %></span>
+    </h5>
+  </div>
+
+  <!-- Tournament Table -->
   <div class="table-responsive shadow-sm rounded">
     <table class="table table-hover align-middle">
       <thead class="table-dark">
@@ -24,8 +43,16 @@
           <td><%= t.name %></td>
           <td><%= t.location || '-' %></td>
           <td><%= t.category || '-' %></td>
-          <td class="fw-semibold <%= t.result === 'Win' ? 'text-success' : 'text-danger' %>">
-            <%= t.result || '-' %>
+          <td class="fw-semibold">
+            <% if (t.placement === 1 || t.result === 'Win') { %>
+              <span class="badge bg-warning text-dark">🥇 1st</span>
+            <% } else if (t.placement === 2 || t.result === 'Finalist') { %>
+              <span class="badge bg-secondary">🥈 2nd</span>
+            <% } else if (t.placement === 3 || t.result === '3rd Place') { %>
+              <span class="badge bg-info text-dark">🥉 3rd</span>
+            <% } else { %>
+              <span class="badge bg-light text-dark">Participated</span>
+            <% } %>
           </td>
         </tr>
         <% }) %>

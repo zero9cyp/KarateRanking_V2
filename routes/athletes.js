@@ -28,33 +28,101 @@ function getCorrectCategory(age, callback) {
 // List all athletes
 router.get('/', (req, res) => {
   const sql = `
-    SELECT a.*, c.name as club_name, ac.name as age_category_name, wc.name as weight_category_name
+    SELECT a.*, c.name as club_name, ac.name as age_category_name, wc.name as weight_category_name,
+           t.id as tournament_id, t.name as tournament_name, t.date as tournament_date, r.placement, r.wins, r.points_earned
     FROM athletes a
     LEFT JOIN clubs c ON a.club_id = c.id
     LEFT JOIN age_categories ac ON a.age_category_id = ac.id
     LEFT JOIN weight_categories wc ON a.weight_category_id = wc.id
-    ORDER BY a.full_name
+    LEFT JOIN results r ON a.id = r.athlete_id
+    LEFT JOIN tournaments t ON r.tournament_id = t.id
+    ORDER BY a.full_name, t.date DESC
   `;
-  db.all(sql, [], (err, athletes) => {
+  db.all(sql, [], (err, rows) => {
     if (err) return console.error(err);
-    // Pass searchQuery as empty string
+
+    // Group results by athlete
+    const athletes = [];
+    const map = {};
+    rows.forEach(r => {
+      if(!map[r.id]){
+        map[r.id] = {...r, tournaments: []};
+        athletes.push(map[r.id]);
+      }
+      if(r.tournament_id) {
+        map[r.id].tournaments.push({
+          id: r.tournament_id,
+          name: r.tournament_name,
+          date: r.tournament_date,
+          placement: r.placement,
+          wins: r.wins,
+          points_earned: r.points_earned
+        });
+      }
+    });
+
     res.render('athletes/index', { athletes, searchQuery: '' });
   });
 });
 
+
 // Show Add Athlete form
-router.get('/add', (req, res) => {
-  db.all('SELECT * FROM age_categories ORDER BY min_age', (err, ageCategories) => {
-    if (err) return console.error(err);
-    db.all('SELECT * FROM weight_categories ORDER BY name', (err2, weightCategories) => {
-      if (err2) return console.error(err2);
-      db.all('SELECT * FROM clubs ORDER BY name', (err3, clubs) => {
-        if (err3) return console.error(err3);
-        res.render('athletes/add', { ageCategories, weightCategories, clubs });
-      });
+// List all athletes with their tournaments
+router.get('/', (req, res) => {
+  const sql = `
+    SELECT a.*, 
+           c.name as club_name, 
+           ac.name as age_category_name, 
+           wc.name as weight_category_name,
+           t.id as tournament_id, 
+           t.name as tournament_name, 
+           t.date as tournament_date,
+           r.placement, 
+           r.wins, 
+           r.points_earned
+    FROM athletes a
+    LEFT JOIN clubs c ON a.club_id = c.id
+    LEFT JOIN age_categories ac ON a.age_category_id = ac.id
+    LEFT JOIN weight_categories wc ON a.weight_category_id = wc.id
+    LEFT JOIN results r ON a.id = r.athlete_id
+    LEFT JOIN tournaments t ON r.tournament_id = t.id
+    ORDER BY a.full_name, t.date DESC
+  `;
+
+  db.all(sql, [], (err, rows) => {
+    if (err) {
+      console.error(err);
+      return res.render('athletes/index', { athletes: [], searchQuery: '' });
+    }
+
+    // Group tournaments under each athlete
+    const athletes = [];
+    const map = {};
+
+    rows.forEach(r => {
+      if (!map[r.id]) {
+        map[r.id] = { 
+          ...r, 
+          tournaments: [] 
+        };
+        athletes.push(map[r.id]);
+      }
+      if (r.tournament_id) {
+        map[r.id].tournaments.push({
+          id: r.tournament_id,
+          name: r.tournament_name,
+          date: r.tournament_date,
+          placement: r.placement,
+          wins: r.wins,
+          points_earned: r.points_earned
+        });
+      }
     });
+
+    res.render('athletes/index', { athletes, searchQuery: '' });
   });
 });
+
 
 // Handle Add Athlete POST safely
 router.post('/add', (req, res) => {
@@ -264,17 +332,20 @@ router.get('/:id/history', (req, res) => {
 // Show tournaments this athlete has fought in
 router.get('/:id/tournaments', (req, res) => {
   const { id } = req.params;
-  db.all(
-    `SELECT t.* 
-     FROM tournaments t
-     JOIN tournament_participants p ON t.id = p.tournament_id
-     WHERE p.athlete_id = ?`,
-    [id],
-    (err, tournaments) => {
-      if (err) return res.status(500).send('Database error');
-      res.render('athletes/tournaments', { tournaments });
+  const sql = `
+    SELECT t.id, t.name, t.date, r.placement, r.wins, r.points_earned
+    FROM tournaments t
+    JOIN results r ON t.id = r.tournament_id
+    WHERE r.athlete_id = ?
+    ORDER BY t.date DESC
+  `;
+  db.all(sql, [id], (err, tournaments) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database error');
     }
-  );
+    res.render('athletes/tournaments', { tournaments });
+  });
 });
 
 

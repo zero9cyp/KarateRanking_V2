@@ -55,18 +55,17 @@
 
   let athletesData = [];
 
-function fetchAthletes(ageCategoryId) {
-  fetch(`/dashboard/age/${ageCategoryId || ''}`)
-    .then(res => res.json())
-    .then(data => {
-      if(data.success) {
-        // Sort athletes alphabetically by full_name
-        athletesData = data.athletes.sort((a, b) => a.full_name.localeCompare(b.full_name));
-        populateTournamentFilter();
-        renderTable();
-      }
-    });
-}
+  function fetchAthletes(ageCategoryId) {
+    fetch(`/dashboard/age/${ageCategoryId || ''}`)
+      .then(res => res.json())
+      .then(data => {
+        if(data.success) {
+          athletesData = data.athletes;
+          populateTournamentFilter();
+          renderTable();
+        }
+      });
+  }
 
   function populateTournamentFilter() {
     const tournaments = new Set();
@@ -123,4 +122,3 @@ function fetchAthletes(ageCategoryId) {
   // Initial load
   fetchAthletes();
 </script>
-
