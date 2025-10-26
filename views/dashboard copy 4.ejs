@@ -1,0 +1,132 @@
+<div class="container mt-4">
+  <h1 class="mb-4">Athletes Dashboard</h1>
+
+  <!-- Filters -->
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <label for="ageCategoryFilter">Age Category:</label>
+      <select id="ageCategoryFilter" class="form-control" multiple>
+        <% ageCategories.forEach(cat => { %>
+          <option value="<%= cat.id %>"><%= cat.name %></option>
+        <% }) %>
+      </select>
+      <small class="text-muted">Hold Ctrl/Cmd to select multiple categories</small>
+    </div>
+
+    <div class="col-md-4">
+      <label for="tournamentFilter">Tournament:</label>
+      <select id="tournamentFilter" class="form-control">
+        <option value="">All</option>
+      </select>
+    </div>
+
+    <div class="col-md-4 d-flex align-items-end">
+      <div class="form-check">
+        <input type="checkbox" id="withResultsOnly" class="form-check-input">
+        <label for="withResultsOnly" class="form-check-label">Only athletes with results</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered" id="athletesTable">
+      <thead class="thead-dark">
+        <tr>
+          <th>Name</th>
+          <th>Club</th>
+          <th>Weight Category</th>
+          <th>Total Points</th>
+          <th>Tournaments</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const ageCategorySelect = document.getElementById('ageCategoryFilter');
+  const tournamentSelect = document.getElementById('tournamentFilter');
+  const withResultsCheckbox = document.getElementById('withResultsOnly');
+  const tableBody = document.querySelector('#athletesTable tbody');
+
+  let athletesData = [];
+  let allTournaments = [];
+
+  // --- Fetch athletes + tournaments ---
+  async function fetchAthletes(ageCategoryIds) {
+    if (!ageCategoryIds || ageCategoryIds.length === 0) ageCategoryIds = ['all'];
+
+    const res = await fetch(`/dashboard/age-multiple/${ageCategoryIds.join(',')}`);
+    const data = await res.json();
+
+    if (data.success) {
+      athletesData = (data.athletes || []).sort((a, b) => a.full_name.localeCompare(b.full_name));
+      allTournaments = data.tournaments || [];
+      populateTournamentFilter();
+      renderTable();
+    }
+  }
+
+  // --- Populate the Tournament dropdown ---
+  function populateTournamentFilter() {
+    tournamentSelect.innerHTML = '<option value="">All</option>';
+    allTournaments.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.name;
+      opt.textContent = `${t.name} (${t.date || 'no date'})`;
+      tournamentSelect.appendChild(opt);
+    });
+  }
+
+  // --- Render athlete table ---
+  function renderTable() {
+    const selectedTournament = tournamentSelect.value;
+    const withResults = withResultsCheckbox.checked;
+
+    tableBody.innerHTML = '';
+
+    athletesData.forEach(a => {
+      let tournamentsToShow = a.tournaments || [];
+
+      if (selectedTournament) {
+        tournamentsToShow = tournamentsToShow.filter(t => t.name === selectedTournament);
+      }
+
+      if (withResults && tournamentsToShow.length === 0) return;
+
+      const tournamentText = tournamentsToShow.length > 0
+        ? tournamentsToShow.map(t => {
+            const badge =
+              t.placement === 1 ? '<span class="badge bg-success">1st</span> ' :
+              t.placement === 2 ? '<span class="badge bg-warning text-dark">2nd</span> ' :
+              t.placement === 3 ? '<span class="badge bg-info text-dark">3rd</span> ' : '';
+            return `${badge}${t.name} (${t.date || ''}) — P:${t.placement || '-'} W:${t.wins || '-'} Points:${t.points_earned || 0}`;
+          }).join('<br>')
+        : '-';
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${a.full_name}</td>
+        <td>${a.club_name || '-'}</td>
+        <td>${a.weight_category || '-'}</td>
+        <td>${a.total_points ?? 0}</td>
+        <td>${tournamentText}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  // --- Event listeners ---
+  ageCategorySelect.addEventListener('change', () => {
+    const selected = Array.from(ageCategorySelect.selectedOptions).map(opt => opt.value);
+    fetchAthletes(selected);
+  });
+
+  tournamentSelect.addEventListener('change', renderTable);
+  withResultsCheckbox.addEventListener('change', renderTable);
+
+  // --- Initial load ---
+  fetchAthletes();
+</script>

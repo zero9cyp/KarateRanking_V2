@@ -1,0 +1,10 @@
+<h1>Edit Result</h1>
+
+<form action="/admin/results/edit/<%= result.id %>" method="POST">
+  <label>Placement: <input type="number" name="placement" value="<%= result.placement %>"></label><br>
+  <label>Wins: <input type="number" name="wins" value="<%= result.wins %>"></label><br>
+  <label>Points: <input type="number" name="points_earned" value="<%= result.points_earned %>"></label><br>
+  <button type="submit">Save</button>
+</form>
+
+<a href="/admin/results">Back to results</a>

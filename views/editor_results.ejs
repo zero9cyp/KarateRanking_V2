@@ -1,0 +1,68 @@
+
+
+<div class="container mt-4">
+  <h2 class="mb-3">🏆 Results for Athlete ID <%= athleteId %></h2>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th>Tournament</th>
+          <th>Date</th>
+          <th>Placement</th>
+          <th>Wins</th>
+          <th>Points</th>
+          <th>Save</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (results.length === 0) { %>
+          <tr><td colspan="6" class="text-center text-muted">No results yet.</td></tr>
+        <% } else { %>
+          <% results.forEach(r => { %>
+            <tr>
+              <form action="/editor/results/update" method="POST">
+                <input type="hidden" name="result_id" value="<%= r.result_id %>">
+                <td>
+                  <select name="tournament_id" class="form-select">
+                    <% tournaments.forEach(t => { %>
+                      <option value="<%= t.id %>" <%= t.id === r.tournament_id ? 'selected' : '' %>>
+                        <%= t.name %> (<%= t.date %>)
+                      </option>
+                    <% }) %>
+                  </select>
+                </td>
+                <td><%= r.date %></td>
+                <td><input class="form-control" type="number" name="placement" value="<%= r.placement %>"></td>
+                <td><input class="form-control" type="number" name="wins" value="<%= r.wins %>"></td>
+                <td><input class="form-control" type="number" name="points_earned" value="<%= r.points_earned %>"></td>
+                <td><button type="submit" class="btn btn-success btn-sm">💾</button></td>
+              </form>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ➕ Add new tournament result -->
+  <h4 class="mt-4">➕ Add New Result</h4>
+  <form action="/editor/results/update" method="POST" class="row g-2">
+    <input type="hidden" name="athlete_id" value="<%= athleteId %>">
+    <div class="col-md-4">
+      <select name="tournament_id" class="form-select" required>
+        <option value="">Select Tournament …</option>
+        <% tournaments.forEach(t => { %>
+          <option value="<%= t.id %>"><%= t.name %> (<%= t.date %>)</option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="col-md-2"><input name="placement" type="number" class="form-control" placeholder="Place"></div>
+    <div class="col-md-2"><input name="wins" type="number" class="form-control" placeholder="Wins"></div>
+    <div class="col-md-2"><input name="points_earned" type="number" class="form-control" placeholder="Points"></div>
+    <div class="col-md-2 d-grid"><button type="submit" class="btn btn-primary">Add</button></div>
+  </form>
+
+  <a href="/editor" class="btn btn-secondary mt-4">⬅ Back</a>
+</div>
+

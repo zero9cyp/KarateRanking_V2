@@ -86,7 +86,8 @@ const logsRouter = require('./routes/logs');
 const backupRouter = require('./routes/backup');
 const restoreRouter = require('./routes/restore');
 const computePointsRouter = require('./routes/computePoints');
-
+const adminResultsRouter = require('./routes/adminResults');
+const adminRoutes = require('./routes/admin');
 // -------------------------------
 // Home route
 // -------------------------------
@@ -111,6 +112,7 @@ app.use('/clubs', ensureAuthenticated, clubsRouter);
 app.use('/ageCategories', ensureAuthenticated, ageCategoriesRouter);
 app.use('/weightCategories', ensureAuthenticated, weightCategoriesRouter);
 app.use('/compute-points', ensureAuthenticated, computePointsRouter);
+app.use('/', adminRoutes);
 
 // -------------------------------
 // Coach/Admin Dashboard
@@ -127,6 +129,8 @@ app.use('/users', ensureAdmin, require('./routes/users'));
 app.use('/logs', ensureAdmin, logsRouter);
 app.use('/backup', ensureAdmin, backupRouter);
 app.use('/restore', ensureAdmin, restoreRouter);
+app.use('/admin/results', ensureAdmin, adminResultsRouter);
+app.use('/editor', require('./routes/editor'));
 
 // -------------------------------
 // 404 fallback

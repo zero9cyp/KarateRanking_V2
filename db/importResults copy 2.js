@@ -6,7 +6,7 @@ const sqlite3 = require('sqlite3').verbose();
 
 // ---------- CONFIG ----------
 const DB_PATH = path.join(__dirname, 'karate_ranking.db'); // adjust your DB file
-const EXCEL_FILE = path.join(__dirname, 'excel_files', 'U14', 'U14_KUMITE_MALE_-40kg.xlsx');
+const EXCEL_FILE = path.join(__dirname, 'excel_files', 'U14', 'U14_KUMITE_MALE_-55KG.xlsx');
 
 
 // ---------- CONNECT DB ----------

@@ -1,0 +1,44 @@
+<div class="container mt-4">
+  <h1 class="mb-3">🏅 Athlete Data Editor</h1>
+
+  <table class="table table-bordered table-striped">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Birth Date</th>
+        <th>Gender</th>
+        <th>Age Category</th>
+        <th>Club</th>
+        <th>Total Points</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% athletes.forEach(a => { %>
+        <tr>
+          <form action="/editor/update" method="POST">
+            <td><%= a.id %><input type="hidden" name="id" value="<%= a.id %>"></td>
+            <td><input class="form-control" type="text" name="full_name" value="<%= a.full_name %>"></td>
+            <td><input class="form-control" type="date" name="birth_date" value="<%= a.birth_date %>"></td>
+            <td>
+              <select class="form-select" name="gender">
+                <option value="male" <%= a.gender === 'male' ? 'selected' : '' %>>Male</option>
+                <option value="female" <%= a.gender === 'female' ? 'selected' : '' %>>Female</option>
+              </select>
+            </td>
+            <td><%= a.age_category || '-' %></td>
+            <td><%= a.club || '-' %></td>
+            <td><input class="form-control" type="number" name="total_points" value="<%= a.total_points %>"></td>
+            <td>
+              <button type="submit" class="btn btn-success btn-sm">💾 Save</button>
+              <form action="/editor/delete/<%= a.id %>" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete <%= a.full_name %>?')">🗑 Delete</button>
+              </form>
+            </td>
+          </form>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>

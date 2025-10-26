@@ -1,0 +1,51 @@
+<form method="POST" action="/duplicates/merge-multi">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">🔍 Possible Duplicate Athletes</h2>
+    <div class="d-flex align-items-center gap-3">
+      <select name="mergeMode" class="form-select form-select-sm" style="width:auto">
+        <option value="move">Move tournaments only (default)</option>
+        <option value="sum">Move tournaments + Sum total points</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="return confirm('Merge all selected duplicates?')">
+        Merge Selected
+      </button>
+    </div>
+  </div>
+
+  <table class="table table-bordered table-hover bg-white shadow-sm align-middle">
+    <thead class="table-light">
+      <tr>
+        <th><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
+        <th>Athlete 1</th>
+        <th>Athlete 2</th>
+        <th>Birth Dates</th>
+        <th>Clubs</th>
+        <th>Tournaments</th>
+        <th>Total Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% duplicates.forEach((d, i) => { %>
+        <tr>
+          <td>
+            <input type="checkbox" name="pairs[]" 
+                   value="<%= d.id1 %>,<%= d.id2 %>" 
+                   class="form-check-input">
+          </td>
+          <td><strong><%= d.name1 %></strong><br><small>ID <%= d.id1 %></small></td>
+          <td><strong><%= d.name2 %></strong><br><small>ID <%= d.id2 %></small></td>
+          <td><%= d.birth1 || '-' %> / <%= d.birth2 || '-' %></td>
+          <td><%= d.club1 %> / <%= d.club2 %></td>
+          <td><%= d.tourn_count1 %> / <%= d.tourn_count2 %></td>
+          <td><%= d.total_points1 %> / <%= d.total_points2 %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</form>
+
+<script>
+function toggleAll(master) {
+  document.querySelectorAll('input[name="pairs[]"]').forEach(chk => chk.checked = master.checked);
+}
+</script>
