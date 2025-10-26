@@ -88,6 +88,8 @@ const restoreRouter = require('./routes/restore');
 const computePointsRouter = require('./routes/computePoints');
 const adminResultsRouter = require('./routes/adminResults');
 const adminRoutes = require('./routes/admin');
+const routeUsers =  require('./routes/users')
+const routeEditor = require('./routes/editor')
 // -------------------------------
 // Home route
 // -------------------------------
@@ -117,7 +119,7 @@ app.use('/', adminRoutes);
 // -------------------------------
 // Coach/Admin Dashboard
 // -------------------------------
-app.use('/dashboard', dashboardRouter);
+app.use('/dashboard', ensureAuthenticated, dashboardRouter);
 app.get('/dashboard', (req, res) => {
   res.render('dashboard', { title: 'Dashboard', currentUser: req.session.user });
 });
@@ -125,12 +127,12 @@ app.get('/dashboard', (req, res) => {
 // -------------------------------
 // Admin-only routes
 // -------------------------------
-app.use('/users', ensureAdmin, require('./routes/users'));
+app.use('/users', ensureAdmin, routeUsers);
 app.use('/logs', ensureAdmin, logsRouter);
 app.use('/backup', ensureAdmin, backupRouter);
 app.use('/restore', ensureAdmin, restoreRouter);
 app.use('/admin/results', ensureAdmin, adminResultsRouter);
-app.use('/editor', require('./routes/editor'));
+app.use('/editor', ensureAdmin, routeEditor);
 
 // -------------------------------
 // 404 fallback
