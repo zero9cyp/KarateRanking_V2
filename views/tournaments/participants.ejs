@@ -1,20 +1,22 @@
 <div class="container mt-5">
-  <h2 class="mb-4 text-center">🏆 Participants for <%= tournament.name %></h2>
+  <h2 class="mb-4 text-center">🏆 Συμμετέχοντες στο <%= tournament.name %></h2>
 
   <% if (participants.length === 0) { %>
-    <div class="alert alert-info text-center">No approved participants yet.</div>
+    <div class="alert alert-info text-center">Δεν υπάρχουν συμμετέχοντες ακόμη.</div>
   <% } else { %>
-    <form action="/tournaments/<%= tournament.id %>/participants/delete-multi" method="POST" onsubmit="return confirm('Are you sure you want to delete selected participants?');">
+    <form action="/tournaments/<%= tournament.id %>/participants/delete-multi" method="POST" onsubmit="return confirm('Είστε σίγουρος ότι θέλετε να διαγράψετε τους επιλεγμένους συμμετέχοντες;');">
       <table class="table table-striped table-hover shadow-sm">
         <thead class="table-dark">
           <tr>
             <th><input type="checkbox" id="selectAll"></th>
             <th>#</th>
-            <th>Full Name</th>
-            <th>Gender</th>
-            <th>Age Category</th>
-            <th>Weight Category</th>
-            <th>Club</th>
+            <th>Όνομα</th>
+            <th>Φύλο</th>
+            <th>Ηλικιακή Κατηγορία</th>
+            <th>Κατηγορία Βάρους</th>
+            <th>Σύλλογος</th>
+            <th>Κατάταξη</th>
+            <th>Πόντοι</th>
           </tr>
         </thead>
         <tbody>
@@ -23,26 +25,55 @@
             <td><input type="checkbox" name="registration_ids[]" value="<%= p.registration_id %>"></td>
             <td><%= index + 1 %></td>
             <td><%= p.full_name %></td>
-            <td><%= p.gender %></td>
+            <td>
+              <% if (p.gender === 'male') { %>
+                <span class="badge bg-primary">Α</span>
+              <% } else if (p.gender === 'female') { %>
+                <span class="badge bg-pink text-white">Γ</span>
+              <% } else { %>
+                —
+              <% } %>
+            </td>
             <td><%= p.age_category || '—' %></td>
             <td><%= p.weight_category || '—' %></td>
             <td><%= p.club_name || '—' %></td>
+            <td>
+              <% if (p.placement === 1) { %>
+                🥇 1η Θέση
+              <% } else if (p.placement === 2) { %>
+                🥈 2η Θέση
+              <% } else if (p.placement === 3) { %>
+                🥉 3η Θέση
+              <% } else if (p.placement) { %>
+                <%= p.placement %>η Θέση
+              <% } else { %>
+                <span class="text-muted">Συμμετείχε</span>
+              <% } %>
+            </td>
+            <td>
+              <%= p.points_earned ? p.points_earned.toFixed(2) : 0 %>
+            </td>
           </tr>
           <% }) %>
         </tbody>
       </table>
+
       <div class="text-center mt-3">
-        <button type="submit" class="btn btn-danger">Delete Selected</button>
-        <a href="/tournaments" class="btn btn-secondary">← Back to Tournaments</a>
+        <button type="submit" class="btn btn-danger">Διαγραφή Επιλεγμένων</button>
+        <a href="/tournaments" class="btn btn-secondary">← Πίσω στα Πρωταθλήματα</a>
       </div>
     </form>
   <% } %>
 </div>
 
 <script>
-  // Select / Deselect all checkboxes
-  document.getElementById('selectAll').addEventListener('change', function() {
-    const checkboxes = document.querySelectorAll('input[name="registration_ids[]"]');
-    checkboxes.forEach(cb => cb.checked = this.checked);
+  document.getElementById('selectAll')?.addEventListener('change', function() {
+    document.querySelectorAll('input[name="registration_ids[]"]').forEach(cb => cb.checked = this.checked);
   });
 </script>
+
+<style>
+  .badge.bg-pink {
+    background-color: #e83e8c;
+  }
+</style>

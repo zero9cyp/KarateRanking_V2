@@ -210,6 +210,8 @@ router.post('/:tournamentId/reject/:athleteId', ensureAdminOrCoach, (req,res)=>{
     });
 });
 
+// List athletes for override
+// List athletes for override
 // List athletes for override with color coding
 router.get('/:tournamentId/registrations', ensureAdminOrCoach, (req, res) => {
     const tournamentId = req.params.tournamentId;
@@ -271,6 +273,7 @@ router.post('/:tournamentId/override/:athleteId', ensureAdminOrCoach, (req,res)=
 });
 
 // 🟩 View participants (approved athletes)
+// 🟩 View participants (approved athletes)
 router.get('/:tournamentId/participants', ensureAuthenticated, (req, res) => {
   const tournamentId = req.params.tournamentId;
 
@@ -280,24 +283,16 @@ router.get('/:tournamentId/participants', ensureAuthenticated, (req, res) => {
       return res.redirect('/tournaments');
     }
 
-    // ✅ Get athletes directly from results table
     const sql = `
-      SELECT 
-        res.id AS result_id,
-        a.full_name,
-        a.gender,
-        ac.name AS age_category,
-        wc.name AS weight_category,
-        c.name AS club_name,
-        res.placement,
-        res.points_earned
-      FROM results res
-      JOIN athletes a ON res.athlete_id = a.id
-      LEFT JOIN age_categories ac ON res.age_category_id = ac.id
-      LEFT JOIN weight_categories wc ON res.weight_category_id = wc.id
+      SELECT r.id AS registration_id, a.full_name, a.gender, ac.name AS age_category,
+             wc.name AS weight_category, c.name AS club_name
+      FROM tournament_registrations r
+      JOIN athletes a ON r.athlete_id = a.id
+      LEFT JOIN age_categories ac ON a.age_category_id = ac.id
+      LEFT JOIN weight_categories wc ON a.weight_category_id = wc.id
       LEFT JOIN clubs c ON a.club_id = c.id
-      WHERE res.tournament_id = ?
-      ORDER BY res.placement ASC, a.full_name ASC
+      WHERE r.tournament_id = ? AND r.approved = 1
+      ORDER BY a.gender, a.full_name
     `;
 
     db.all(sql, [tournamentId], (err2, participants) => {
@@ -311,7 +306,6 @@ router.get('/:tournamentId/participants', ensureAuthenticated, (req, res) => {
     });
   });
 });
-
 
 // Delete a participant from a tournament
 router.post('/:tournamentId/participants/delete/:participantId', ensureAdminOrCoach, (req, res) => {
