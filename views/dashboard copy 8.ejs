@@ -76,11 +76,11 @@
           <thead class="table-primary">
             <tr>
               <th style="width:50px;">#</th>
-              <th class="sortable" data-sort="full_name">Όνομα <i class="bi bi-arrow-down-up"></i></th>
-              <th class="sortable" data-sort="gender">Φύλο <i class="bi bi-arrow-down-up"></i></th>
-              <th class="sortable" data-sort="club_name">Σύλλογος <i class="bi bi-arrow-down-up"></i></th>
-              <th class="sortable" data-sort="weight_category">Κατηγορία Βάρους <i class="bi bi-arrow-down-up"></i></th>
-              <th class="sortable" data-sort="total_points">Συνολικοί Πόντοι <i class="bi bi-arrow-down-up"></i></th>
+              <th>Όνομα</th>
+              <th>Φύλο</th>
+              <th>Σύλλογος</th>
+              <th>Κατηγορία Βάρους</th>
+              <th>Συνολικοί Πόντοι</th>
               <th>Αγώνες</th>
             </tr>
           </thead>
@@ -101,22 +101,21 @@
   const tableBody = document.querySelector('#athletesTable tbody');
   const athleteCount = document.getElementById('athleteCount');
   const refreshBtn = document.getElementById('refreshBtn');
-  const sortableHeaders = document.querySelectorAll('.sortable');
 
   let athletesData = [];
   let allTournaments = [];
-  let currentSort = { key: 'full_name', asc: true };
 
   async function fetchAthletes(ageCategoryIds) {
     if (!ageCategoryIds || ageCategoryIds.length === 0) ageCategoryIds = ['all'];
+
     const res = await fetch(`/dashboard/age-multiple/${ageCategoryIds.join(',')}`);
     const data = await res.json();
+
     if (data.success) {
-      athletesData = (data.athletes || []);
+      athletesData = (data.athletes || []).sort((a, b) => a.full_name.localeCompare(b.full_name));
       allTournaments = data.tournaments || [];
       populateTournamentFilter();
       populateWeightFilter();
-      sortAthletes();
       renderTable();
     }
   }
@@ -142,31 +141,6 @@
     });
   }
 
-  function sortAthletes() {
-    athletesData.sort((a, b) => {
-      const key = currentSort.key;
-      const dir = currentSort.asc ? 1 : -1;
-      if (typeof a[key] === 'number' && typeof b[key] === 'number') {
-        return (a[key] - b[key]) * dir;
-      }
-      return (String(a[key] || '').localeCompare(String(b[key] || ''))) * dir;
-    });
-  }
-
-  sortableHeaders.forEach(header => {
-    header.addEventListener('click', () => {
-      const key = header.dataset.sort;
-      if (currentSort.key === key) {
-        currentSort.asc = !currentSort.asc;
-      } else {
-        currentSort.key = key;
-        currentSort.asc = true;
-      }
-      sortAthletes();
-      renderTable();
-    });
-  });
-
   function renderTable() {
     const selectedTournament = tournamentSelect.value;
     const selectedWeight = weightCategorySelect.value;
@@ -187,6 +161,7 @@
       if (withResults && tournamentsToShow.length === 0) return;
 
       visibleCount++;
+
       const genderBadge =
         a.gender === 'male'
           ? '<span class="badge bg-primary">M</span>'
@@ -237,7 +212,7 @@
 </script>
 
 <style>
-  .badge.bg-pink { background-color: #e83e8c; }
-  th.sortable { cursor: pointer; user-select: none; }
-  th.sortable:hover { background-color: #eaf3ff; }
+  .badge.bg-pink {
+    background-color: #e83e8c;
+  }
 </style>
