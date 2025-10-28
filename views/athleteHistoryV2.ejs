@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= athlete.full_name %> – History</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+</head>
+<body class="p-4">
+  <h2><%= athlete.full_name %> – Points History</h2>
+  <p><b>Club:</b> <%= athlete.club %> | <b>Age:</b> <%= athlete.age_category %></p>
+
+  <table class="table table-bordered mt-3">
+    <thead>
+      <tr><th>Date</th><th>Reason</th><th>Δ</th><th>Total</th><th>Source</th></tr>
+    </thead>
+    <tbody>
+      <% history.forEach(h=>{ %>
+        <tr>
+          <td><%= new Date(h.date).toLocaleDateString() %></td>
+          <td><%= h.reason %></td>
+          <td class="<%= h.delta>=0?'text-success':'text-danger' %>">
+            <%= h.delta %>
+          </td>
+          <td><%= h.points %></td>
+          <td><%= h.source %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <a href="/ranking-v2" class="btn btn-secondary">← Back</a>
+</body>
+</html>

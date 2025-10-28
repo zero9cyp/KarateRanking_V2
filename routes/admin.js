@@ -45,62 +45,106 @@ router.get('/duplicates', (req, res) => {
   }
 });
 
-// 🧩 Merge two athlete records
-router.post('/duplicates/merge', (req, res) => {
+// 🧩 Merge two athlete records safely with foreign key awareness
+router.post("/duplicates/merge", (req, res) => {
   const { keepId, mergeId } = req.body;
   if (!keepId || !mergeId) {
-    return res.status(400).send('Missing IDs');
+    return res.status(400).send("Missing IDs");
   }
 
   try {
     const mergeTx = db.transaction(() => {
-      // Update results to point to the "kept" athlete
-      db.prepare('UPDATE results SET athlete_id=? WHERE athlete_id=?').run(keepId, mergeId);
+      // 1️⃣ Move related records
+      const relatedTables = [
+        "results",
+        "points_history",
+        "category_changes",
+        "athlete_last_participation",
+        "penalties"
+      ];
 
-      // Delete the duplicate athlete
-      db.prepare('DELETE FROM athletes WHERE id=?').run(mergeId);
+      for (const tbl of relatedTables) {
+        const col = tbl === "penalties" ? "result_id" : "athlete_id";
+        if (col === "athlete_id") {
+          db.prepare(`UPDATE ${tbl} SET athlete_id=? WHERE athlete_id=?`).run(keepId, mergeId);
+        } else if (col === "result_id") {
+          // penalties link via result → update handled via result reassignment already
+          db.prepare(
+            `UPDATE penalties SET result_id = (
+              SELECT id FROM results WHERE athlete_id = ?
+            ) WHERE result_id IN (SELECT id FROM results WHERE athlete_id = ?)`
+          ).run(keepId, mergeId);
+        }
+      }
+
+      // 2️⃣ Combine total points
+      const keep = db.prepare("SELECT total_points FROM athletes WHERE id=?").get(keepId);
+      const merge = db.prepare("SELECT total_points FROM athletes WHERE id=?").get(mergeId);
+      const newPoints = (keep?.total_points || 0) + (merge?.total_points || 0);
+      db.prepare("UPDATE athletes SET total_points=? WHERE id=?").run(newPoints, keepId);
+
+      // 3️⃣ Log merge
+      db.prepare("INSERT INTO athlete_merge_map (old_id, new_id) VALUES (?, ?)").run(mergeId, keepId);
+
+      // 4️⃣ Delete duplicate athlete
+      db.prepare("DELETE FROM athletes WHERE id=?").run(mergeId);
     });
 
     mergeTx();
-    res.redirect('/duplicates');
+    res.redirect("/duplicates");
   } catch (err) {
-    console.error('Merge error:', err);
-    res.status(500).send('Error merging athletes.');
+    console.error("Merge error:", err.message);
+    res.status(500).send("Error merging athletes: " + err.message);
   }
 });
 
-router.post('/duplicates/merge-multi', (req, res) => {
+// 🧩 Merge multiple pairs (bulk merge)
+router.post("/duplicates/merge-multi", (req, res) => {
   const { pairs, mergeMode } = req.body;
   if (!pairs || pairs.length === 0) {
-    return res.redirect('/duplicates');
+    return res.redirect("/duplicates");
   }
 
   try {
     const mergeTx = db.transaction(() => {
-      pairs.forEach(pair => {
-        const [keepId, mergeId] = pair.split(',').map(Number);
+      pairs.forEach((pair) => {
+        const [keepId, mergeId] = pair.split(",").map(Number);
         if (!keepId || !mergeId) return;
 
-        // Move results
-        db.prepare('UPDATE results SET athlete_id=? WHERE athlete_id=?').run(keepId, mergeId);
-
-        if (mergeMode === 'sum') {
-          const keep = db.prepare('SELECT total_points FROM athletes WHERE id=?').get(keepId);
-          const merge = db.prepare('SELECT total_points FROM athletes WHERE id=?').get(mergeId);
-          const newPoints = (keep?.total_points || 0) + (merge?.total_points || 0);
-          db.prepare('UPDATE athletes SET total_points=? WHERE id=?').run(newPoints, keepId);
+        // move data
+        const tables = [
+          "results",
+          "points_history",
+          "category_changes",
+          "athlete_last_participation",
+          "penalties"
+        ];
+        for (const tbl of tables) {
+          if (tbl === "penalties") continue;
+          db.prepare(`UPDATE ${tbl} SET athlete_id=? WHERE athlete_id=?`).run(keepId, mergeId);
         }
 
-        // Delete duplicate
-        db.prepare('DELETE FROM athletes WHERE id=?').run(mergeId);
+        // merge points
+        if (mergeMode === "sum") {
+          const keep = db.prepare("SELECT total_points FROM athletes WHERE id=?").get(keepId);
+          const merge = db.prepare("SELECT total_points FROM athletes WHERE id=?").get(mergeId);
+          const newPoints = (keep?.total_points || 0) + (merge?.total_points || 0);
+          db.prepare("UPDATE athletes SET total_points=? WHERE id=?").run(newPoints, keepId);
+        }
+
+        // record merge map
+        db.prepare("INSERT INTO athlete_merge_map (old_id, new_id) VALUES (?, ?)").run(mergeId, keepId);
+
+        // delete old
+        db.prepare("DELETE FROM athletes WHERE id=?").run(mergeId);
       });
     });
 
     mergeTx();
-    res.redirect('/duplicates');
+    res.redirect("/duplicates");
   } catch (err) {
-    console.error('Multi-merge error:', err);
-    res.status(500).send('Error merging duplicates.');
+    console.error("Multi-merge error:", err.message);
+    res.status(500).send("Error merging duplicates: " + err.message);
   }
 });
 

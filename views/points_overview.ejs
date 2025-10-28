@@ -1,0 +1,43 @@
+<div class="container mt-4">
+  <h1>🏁 Points Overview</h1>
+  <div class="mb-3">
+    <form action="/points/closing/generate" method="POST" style="display:inline-block;">
+      <button class="btn btn-dark btn-sm">Generate 2024 Closing Snapshot</button>
+    </form>
+    <form action="/points/starting/generate" method="POST" style="display:inline-block;">
+      <button class="btn btn-primary btn-sm">Generate 2025 Starting Points</button>
+    </form>
+    <form action="/points/starting/generate" method="POST" class="d-inline">
+  <button type="submit" class="btn btn-warning ms-2">
+    🔄 Generate 2025 Starting Points
+  </button>
+</form>
+  </div>
+
+  <table class="table table-bordered table-striped align-middle">
+  <thead>
+  <tr>
+    <th>Athlete</th>
+    <th>Closing 2024<br>(before penalty)</th>
+    <th>Starting 2025<br>(after carry)</th>
+    <th>Current Total<br>(live)</th>
+    <th>History</th>
+  </tr>
+</thead>
+<tbody>
+  <% rows.forEach(r => { %>
+    <tr>
+      <td><%= r.athlete_name %></td>
+      <td><%= r.closing_2024 ?? '-' %></td>
+      <td><%= r.starting_2025 ?? '-' %></td>
+      <td><%= r.current_total ?? '-' %></td>
+      <td>
+        <a class="btn btn-sm btn-outline-secondary" href="/points/history/<%= r.athlete_id %>">
+          View
+        </a>
+      </td>
+    </tr>
+  <% }) %>
+</tbody>
+  </table>
+</div>

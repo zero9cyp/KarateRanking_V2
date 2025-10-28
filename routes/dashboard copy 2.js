@@ -1,80 +1,56 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const sqlite3 = require("sqlite3").verbose();
-const db = new sqlite3.Database("./db/karate_ranking.db");
+const sqlite3 = require('sqlite3').verbose();
+const db = new sqlite3.Database('./db/karate_ranking.db');
 
-const { ensureAuthenticated, ensureAdminOrCoach } = require("../middleware/auth");
+const { ensureAuthenticated, ensureAdminOrCoach } = require('../middleware/auth');
 
 // -----------------------------
 // Dashboard main view
 // -----------------------------
-router.get("/", ensureAuthenticated, ensureAdminOrCoach, (req, res) => {
+router.get('/', ensureAuthenticated, ensureAdminOrCoach, (req, res) => {
   db.all(`SELECT * FROM age_categories ORDER BY min_age ASC`, [], (err, ageCategories) => {
     if (err) {
       console.error(err);
-      return res.render("dashboard", { ageCategories: [], weights: [], clubs: [] });
+      return res.render('dashboard', { ageCategories: [], athletes: [] });
     }
-
-    db.all(`SELECT DISTINCT name FROM weight_categories ORDER BY name ASC`, [], (err2, weights) => {
-      if (err2) return res.render("dashboard", { ageCategories, weights: [], clubs: [] });
-
-      db.all(`SELECT DISTINCT name FROM clubs ORDER BY name ASC`, [], (err3, clubs) => {
-        if (err3) return res.render("dashboard", { ageCategories, weights, clubs: [] });
-
-        res.render("dashboard", { ageCategories, weights, clubs });
-      });
-    });
+    res.render('dashboard', { ageCategories, athletes: [] });
   });
 });
 
 // -----------------------------
 // Multi-age category API
 // -----------------------------
-router.get("/age-multiple/:ageCategoryIds", ensureAuthenticated, ensureAdminOrCoach, (req, res) => {
-  const ageIds = req.params.ageCategoryIds.split(",").map((id) => id.trim());
-
-  // --- Filters setup ---
-  let filters = [];
+router.get('/age-multiple/:ageCategoryIds', ensureAuthenticated, ensureAdminOrCoach, (req, res) => {
+  const ageIds = req.params.ageCategoryIds.split(',').map(id => id.trim());
+  const { weight, club, search } = req.query; // 👈 extra filters
   let params = [];
+  let whereClause = 'WHERE 1=1 ';
 
   // Age category filter
-  if (!(ageIds.length === 1 && ageIds[0] === "all")) {
-    filters.push(`a.age_category_id IN (${ageIds.map(() => "?").join(",")})`);
+  if (!(ageIds.length === 1 && ageIds[0] === 'all')) {
+    whereClause += 'AND a.age_category_id IN (' + ageIds.map(() => '?').join(',') + ') ';
     params.push(...ageIds);
   }
 
-  // Gender filter
-  if (req.query.gender && ["male", "female"].includes(req.query.gender.toLowerCase())) {
-    filters.push("LOWER(a.gender) = ?");
-    params.push(req.query.gender.toLowerCase());
+  // Optional filters
+  if (weight) {
+    whereClause += 'AND wc.name = ? ';
+    params.push(weight);
+  }
+  if (club) {
+    whereClause += 'AND c.name = ? ';
+    params.push(club);
+  }
+  if (search) {
+    whereClause += 'AND LOWER(a.full_name) LIKE ? ';
+    params.push(`%${search.toLowerCase()}%`);
   }
 
-  // Weight filter
-  if (req.query.weight) {
-    filters.push("UPPER(wc.name) = ?");
-    params.push(req.query.weight.toUpperCase());
-  }
-
-  // Club filter
-  if (req.query.club) {
-    filters.push("LOWER(c.name) = LOWER(?)");
-    params.push(req.query.club);
-  }
-
-  // Search filter
-  if (req.query.search) {
-    filters.push("LOWER(a.full_name) LIKE ?");
-    params.push(`%${req.query.search.toLowerCase()}%`);
-  }
-
-  const whereClause = filters.length ? "WHERE " + filters.join(" AND ") : "";
-
-  // --- Query athletes & results ---
   const sqlAthletes = `
     SELECT 
       a.id AS athlete_id, 
       a.full_name, 
-      a.gender,
       a.total_points, 
       c.name AS club_name,
       wc.name AS weight_category,
@@ -94,7 +70,6 @@ router.get("/age-multiple/:ageCategoryIds", ensureAuthenticated, ensureAdminOrCo
     ORDER BY a.full_name, t.date DESC
   `;
 
-  // --- Query all tournaments ---
   const sqlTournaments = `
     SELECT id, name, date 
     FROM tournaments 
@@ -107,18 +82,16 @@ router.get("/age-multiple/:ageCategoryIds", ensureAuthenticated, ensureAdminOrCo
     db.all(sqlTournaments, [], (err2, tournaments) => {
       if (err2) return res.json({ success: false, error: err2.message });
 
-      // Build athlete map
       const athletesMap = {};
-      athleteRows.forEach((row) => {
+      athleteRows.forEach(row => {
         if (!athletesMap[row.athlete_id]) {
           athletesMap[row.athlete_id] = {
             id: row.athlete_id,
             full_name: row.full_name,
-            gender: row.gender,
             club_name: row.club_name,
             weight_category: row.weight_category,
             total_points: row.total_points,
-            tournaments: [],
+            tournaments: []
           };
         }
 
@@ -130,7 +103,7 @@ router.get("/age-multiple/:ageCategoryIds", ensureAuthenticated, ensureAdminOrCo
             placement: row.placement,
             wins: row.wins,
             participated: row.participated,
-            points_earned: row.points_earned,
+            points_earned: row.points_earned
           });
         }
       });
@@ -138,10 +111,11 @@ router.get("/age-multiple/:ageCategoryIds", ensureAuthenticated, ensureAdminOrCo
       res.json({
         success: true,
         tournaments,
-        athletes: Object.values(athletesMap),
+        athletes: Object.values(athletesMap)
       });
     });
   });
 });
+
 
 module.exports = router;

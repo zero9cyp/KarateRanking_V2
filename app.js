@@ -90,6 +90,11 @@ const adminResultsRouter = require('./routes/adminResults');
 const adminRoutes = require('./routes/admin');
 const routeUsers =  require('./routes/users')
 const routeEditor = require('./routes/editor')
+const rankingV2 = require("./routes/rankingV2.js");
+const athleteHistoryV2 = require("./routes/athleteHistoryV2.js");
+const adminRecalculateV2 = require("./routes/adminRecalculateV2");
+const routeAdminPanel =  require("./routes/adminPanelV2")
+const pointsRoutes = require("./routes/points");
 // -------------------------------
 // Home route
 // -------------------------------
@@ -115,7 +120,7 @@ app.use('/ageCategories', ensureAuthenticated, ageCategoriesRouter);
 app.use('/weightCategories', ensureAuthenticated, weightCategoriesRouter);
 app.use('/compute-points', ensureAuthenticated, computePointsRouter);
 app.use('/', adminRoutes);
-
+app.use("/points", pointsRoutes);
 // -------------------------------
 // Coach/Admin Dashboard
 // -------------------------------
@@ -133,7 +138,10 @@ app.use('/backup', ensureAdmin, backupRouter);
 app.use('/restore', ensureAdmin, restoreRouter);
 app.use('/admin/results', ensureAdmin, adminResultsRouter);
 app.use('/editor', ensureAdmin, routeEditor);
-
+app.use("/ranking-v2", rankingV2);
+app.use("/athlete", athleteHistoryV2);
+app.use("/admin", routeAdminPanel);
+app.use("/", adminRecalculateV2);
 // -------------------------------
 // 404 fallback
 // -------------------------------
