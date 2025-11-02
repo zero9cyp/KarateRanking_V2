@@ -65,7 +65,6 @@ router.get('/', (req, res) => {
   });
 });
 
-
 // Show Add Athlete form
 // List all athletes with their tournaments
 router.get('/', (req, res) => {

@@ -139,9 +139,9 @@ app.use('/restore', ensureAdmin, restoreRouter);
 app.use('/admin/results', ensureAdmin, adminResultsRouter);
 app.use('/editor', ensureAdmin, routeEditor);
 app.use("/ranking-v2", rankingV2);
-app.use("/athlete", athleteHistoryV2);
-app.use("/admin", routeAdminPanel);
-app.use("/", adminRecalculateV2);
+app.use("/athlete", ensureAuthenticated, athleteHistoryV2);
+app.use("/admin",ensureAuthenticated, routeAdminPanel);
+app.use("/", ensureAuthenticated, adminRecalculateV2);
 // -------------------------------
 // 404 fallback
 // -------------------------------

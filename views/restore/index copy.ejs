@@ -35,28 +35,15 @@
             <td><%= file.name %></td>
             <td><%= file.time %></td>
             <td class="d-flex gap-2">
-              <!-- Restore -->
               <form method="post" action="/restore/select">
                 <input type="hidden" name="backupName" value="<%= file.name %>">
-                <button class="btn btn-sm btn-primary" onclick="return confirm('Επαναφορά από αυτό το αντίγραφο;')">
-                  Επαναφορά
-                </button>
+                <button class="btn btn-sm btn-primary" onclick="return confirm('Επαναφορά από αυτό το αντίγραφο;')">Επαναφορά</button>
               </form>
-
-              <!-- Download -->
-              <a href="/backup/download/<%= encodeURIComponent(file.name) %>" class="btn btn-sm btn-success">
-                ⬇️ Λήψη
-              </a>
-
-              <!-- Delete -->
               <form method="post" action="/backup/delete">
                 <input type="hidden" name="backupFile" value="<%= file.name %>">
-                <button class="btn btn-sm btn-danger" onclick="return confirm('Διαγραφή αντιγράφου;')">
-                  Διαγραφή
-                </button>
+                <button class="btn btn-sm btn-danger" onclick="return confirm('Διαγραφή αντιγράφου;')">Διαγραφή</button>
               </form>
             </td>
-
           </tr>
           <% }) %>
         </tbody>

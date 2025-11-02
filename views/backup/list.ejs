@@ -16,15 +16,29 @@
       <tr>
         <td><%= b.name %></td>
         <td><%= b.time %></td>
-        <td>
+        <td class="d-flex gap-2">
+
+          <!-- Restore -->
           <form action="/backup/restore" method="POST" style="display:inline;">
             <input type="hidden" name="backupFile" value="<%= b.name %>">
-            <button class="btn btn-sm btn-primary" onclick="return confirm('Restore this backup?')">Restore</button>
+            <button class="btn btn-sm btn-primary" onclick="return confirm('Restore this backup?')">
+              🔄 Restore
+            </button>
           </form>
+
+          <!-- Download -->
+          <a href="/backup/download/<%= encodeURIComponent(b.name) %>" class="btn btn-sm btn-success">
+            ⬇️ Download
+          </a>
+
+          <!-- Delete -->
           <form action="/backup/delete" method="POST" style="display:inline;">
             <input type="hidden" name="backupFile" value="<%= b.name %>">
-            <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this backup?')">Delete</button>
+            <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this backup?')">
+              🗑️ Delete
+            </button>
           </form>
+
         </td>
       </tr>
       <% }) %>

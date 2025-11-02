@@ -4,7 +4,6 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const { ensureAdmin, logAction } = require('../middleware/auth');
-
 const dbFile = path.join(__dirname, '../db/karate_ranking.db');
 const backupDir = path.join(__dirname, '../db/backups'); // same as restore.js
 if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
@@ -84,5 +83,25 @@ router.post('/delete', ensureAdmin, (req, res) => {
 
   res.redirect('/backup/list');
 });
+
+// Download a backup file
+router.get("/download/:filename", (req, res) => {
+  const fileName = req.params.filename;
+  const filePath = path.join(__dirname, "../db/backups", fileName);
+
+  if (!fs.existsSync(filePath)) {
+    req.flash("error_msg", "Το αρχείο δεν βρέθηκε.");
+    return res.redirect("/restore");
+  }
+
+  res.download(filePath, fileName, (err) => {
+    if (err) {
+      console.error("Download error:", err);
+      req.flash("error_msg", "Σφάλμα κατά τη λήψη του αρχείου.");
+      res.redirect("/restore");
+    }
+  });
+});
+
 
 module.exports = router;

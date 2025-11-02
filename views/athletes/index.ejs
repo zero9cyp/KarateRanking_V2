@@ -7,13 +7,7 @@
   </div>
 
   <form action="/athletes/search" method="get" class="d-flex mb-4">
-    <input 
-      type="text" 
-      name="query" 
-      class="form-control me-2" 
-      placeholder="🔍 Search athletes..." 
-      value="<%= searchQuery || '' %>"
-    >
+    <input type="text" name="query" class="form-control me-2" placeholder="🔍 Search athletes..." value="<%= searchQuery || '' %>">
     <button type="submit" class="btn btn-outline-primary">Search</button>
   </form>
 
@@ -48,7 +42,8 @@
               <form action="/athletes/delete/<%= a.id %>" method="POST" style="display:inline;">
                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this athlete?');">🗑️</button>
               </form>
-              <a href="/athletes/<%= a.id %>/history" class="btn btn-sm btn-info text-white">📈 History</a>
+              <!-- <a href="/athletes/<%= a.id %>/history" class="btn btn-sm btn-outline-secondary">📜 Old History</a> -->
+              <a href="/athlete/<%= a.id %>/history-v2" class="btn btn-sm btn-info text-white">📈 New History</a>
               <a href="/athletes/<%= a.id %>/tournaments" class="btn btn-sm btn-secondary">🥋 Tournaments</a>
             </div>
           </td>
