@@ -58,3 +58,43 @@
     </div>
   </form>
 </div>
+
+<script>
+  async function updateWeightCategories() {
+    const ageSelect = document.querySelector('[name="age_category_id"]');
+    const genderSelect = document.querySelector('[name="gender"]');
+    const weightSelect = document.querySelector('[name="weight_category_id"]');
+
+    const ageId = ageSelect.value;
+    const gender = genderSelect.value;
+
+    if (!ageId || !gender) return;
+
+    try {
+      const res = await fetch(`/athletes/weight-categories?age_category_id=${ageId}&gender=${gender}`);
+      const data = await res.json();
+
+      weightSelect.innerHTML = ""; // clear current options
+
+      if (data.length === 0) {
+        const opt = document.createElement("option");
+        opt.textContent = "— No categories found —";
+        opt.value = "";
+        weightSelect.appendChild(opt);
+        return;
+      }
+
+      data.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat.id;
+        opt.textContent = cat.name;
+        weightSelect.appendChild(opt);
+      });
+    } catch (err) {
+      console.error("Error loading weight categories:", err);
+    }
+  }
+
+  document.querySelector('[name="age_category_id"]').addEventListener("change", updateWeightCategories);
+  document.querySelector('[name="gender"]').addEventListener("change", updateWeightCategories);
+</script>
