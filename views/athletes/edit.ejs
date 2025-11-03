@@ -15,8 +15,9 @@
     <div class="col-md-3">
       <label class="form-label">Gender</label>
       <select name="gender" class="form-select" required>
-        <option value="Male" <%= athlete.gender === 'Male' ? 'selected' : '' %>>Male</option>
-        <option value="Female" <%= athlete.gender === 'Female' ? 'selected' : '' %>>Female</option>
+        <!-- IMPORTANT: values are lowercase to match backend filter -->
+        <option value="male" <%= athlete.gender === 'male' ? 'selected' : '' %>>Male</option>
+        <option value="female" <%= athlete.gender === 'female' ? 'selected' : '' %>>Female</option>
       </select>
     </div>
 
@@ -32,9 +33,8 @@
     <div class="col-md-4">
       <label class="form-label">Weight Category</label>
       <select name="weight_category_id" class="form-select" required>
-        <% weightCategories.forEach(c => { %>
-          <option value="<%= c.id %>" <%= c.id === athlete.weight_category_id ? 'selected' : '' %>><%= c.name %></option>
-        <% }) %>
+        <!-- We will populate this via AJAX and then select the athlete's weight -->
+        <option value="">— Loading… —</option>
       </select>
     </div>
 
@@ -49,7 +49,7 @@
 
     <div class="col-md-3">
       <label class="form-label">Total Points</label>
-      <input type="number" name="total_points" class="form-control" value="<%= athlete.total_points %>">
+      <input type="number" step="0.01" name="total_points" class="form-control" value="<%= athlete.total_points %>">
     </div>
 
     <div class="col-12">
@@ -60,41 +60,70 @@
 </div>
 
 <script>
-  async function updateWeightCategories() {
+  async function updateWeightCategories(preselectId) {
     const ageSelect = document.querySelector('[name="age_category_id"]');
     const genderSelect = document.querySelector('[name="gender"]');
     const weightSelect = document.querySelector('[name="weight_category_id"]');
 
     const ageId = ageSelect.value;
-    const gender = genderSelect.value;
+    const gender = genderSelect.value; // lowercase
 
-    if (!ageId || !gender) return;
+    weightSelect.innerHTML = '';
+
+    if (!ageId || !gender) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '— Select age & gender first —';
+      weightSelect.appendChild(opt);
+      return;
+    }
 
     try {
-      const res = await fetch(`/athletes/weight-categories?age_category_id=${ageId}&gender=${gender}`);
+      const res = await fetch(`/athletes/weight-categories?age_category_id=${ageId}&gender=${encodeURIComponent(gender)}`);
       const data = await res.json();
 
-      weightSelect.innerHTML = ""; // clear current options
-
-      if (data.length === 0) {
-        const opt = document.createElement("option");
-        opt.textContent = "— No categories found —";
-        opt.value = "";
+      if (!Array.isArray(data) || data.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = '— No categories found —';
         weightSelect.appendChild(opt);
         return;
       }
 
       data.forEach(cat => {
-        const opt = document.createElement("option");
+        const opt = document.createElement('option');
         opt.value = cat.id;
         opt.textContent = cat.name;
         weightSelect.appendChild(opt);
       });
+
+      // Preselect current athlete's weight category if provided
+      if (preselectId) {
+        weightSelect.value = String(preselectId);
+        if (weightSelect.value !== String(preselectId)) {
+          // If current category isn't in filtered list (shouldn't happen), add it manually
+          const missing = document.createElement('option');
+          missing.value = preselectId;
+          missing.textContent = 'Current (not in filtered)';
+          weightSelect.appendChild(missing);
+          weightSelect.value = String(preselectId);
+        }
+      }
     } catch (err) {
-      console.error("Error loading weight categories:", err);
+      console.error('Error loading weight categories:', err);
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '— Error loading categories —';
+      weightSelect.appendChild(opt);
     }
   }
 
-  document.querySelector('[name="age_category_id"]').addEventListener("change", updateWeightCategories);
-  document.querySelector('[name="gender"]').addEventListener("change", updateWeightCategories);
+  document.querySelector('[name="age_category_id"]').addEventListener('change', () => updateWeightCategories());
+  document.querySelector('[name="gender"]').addEventListener('change', () => updateWeightCategories());
+
+  // Populate on load and preselect the athlete’s current weight category
+  document.addEventListener('DOMContentLoaded', () => {
+    const currentWeightId = '<%= athlete.weight_category_id || "" %>';
+    updateWeightCategories(currentWeightId);
+  });
 </script>
