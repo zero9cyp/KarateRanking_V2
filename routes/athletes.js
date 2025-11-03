@@ -197,6 +197,23 @@ router.get('/search', (req, res) => {
   });
 });
 
+router.get('/:id/tournaments', (req, res) => {
+  const { id } = req.params;
+  const sql = `
+    SELECT t.id, t.name, t.date, r.placement, r.wins, r.points_earned
+    FROM tournaments t
+    JOIN results r ON t.id = r.tournament_id
+    WHERE r.athlete_id = ?
+    ORDER BY t.date DESC
+  `;
+  db.all(sql, [id], (err, tournaments) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database error');
+    }
+    res.render('athletes/tournaments', { tournaments });
+  });
+});
 // =============================
 // 🟢 AJAX: Weight Categories by Age & Gender
 // =============================
