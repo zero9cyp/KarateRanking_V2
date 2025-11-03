@@ -119,7 +119,7 @@ app.use('/clubs', ensureAuthenticated, clubsRouter);
 app.use('/ageCategories', ensureAuthenticated, ageCategoriesRouter);
 app.use('/weightCategories', ensureAuthenticated, weightCategoriesRouter);
 app.use('/compute-points', ensureAuthenticated, computePointsRouter);
-app.use('/', adminRoutes);
+app.use('/', ensureAuthenticated, adminRoutes);
 app.use("/points", pointsRoutes);
 // -------------------------------
 // Coach/Admin Dashboard
