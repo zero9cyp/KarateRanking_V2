@@ -238,4 +238,41 @@ router.get("/weight-categories", (req, res) => {
   });
 });
 
+// Show form to move athlete to another club
+router.get('/move/:id', (req, res) => {
+  const id = req.params.id;
+
+  db.get('SELECT * FROM athletes WHERE id = ?', [id], (err, athlete) => {
+    if (err || !athlete) return res.redirect('/athletes');
+
+    db.all('SELECT * FROM clubs ORDER BY name', (err2, clubs) => {
+      if (err2) return console.error(err2);
+
+      res.render('athletes/move', { athlete, clubs });
+    });
+  });
+});
+
+// Handle moving athlete to another club
+// Handle moving athlete to another club
+router.post('/move/:id', (req, res) => {
+  const id = req.params.id;
+  const { club_id } = req.body;
+
+  // Step 1: get current club_id (so we can return there)
+  db.get('SELECT club_id FROM athletes WHERE id = ?', [id], (err, row) => {
+    if (err || !row) return res.redirect('/clubs');
+
+    const oldClubId = row.club_id;
+
+    // Step 2: update the athlete’s club
+    db.run('UPDATE athletes SET club_id = ? WHERE id = ?', [club_id, id], (err2) => {
+      if (err2) return console.error(err2);
+
+      // Step 3: redirect back to the old club's athlete list
+      res.redirect(`/clubs/${oldClubId}/athletes`);
+    });
+  });
+});
+
 module.exports = router;
