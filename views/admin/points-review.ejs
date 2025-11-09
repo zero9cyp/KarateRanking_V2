@@ -1,0 +1,70 @@
+<div class="container mt-4">
+  <h2>🧾 Full Points Editor</h2>
+
+  <!-- 🔍 Search Bar -->
+  <form class="row g-3 mb-3" method="GET" action="/points-review">
+    <div class="col-md-6">
+      <input
+        type="text"
+        name="search"
+        placeholder="Αναζήτηση αθλητή..."
+        value="<%= search %>"
+        class="form-control"
+      />
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-dark w-100">🔍 Search</button>
+    </div>
+    <% if (search) { %>
+      <div class="col-md-2">
+        <a href="/points-review" class="btn btn-secondary w-100">✖️ Clear</a>
+      </div>
+    <% } %>
+  </form>
+
+  <!-- 🏆 Results Table -->
+  <table class="table table-bordered table-sm align-middle">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Total Points (Athlete)</th>
+        <th>History Total</th>
+        <th>Διαφορά</th>
+        <th>Season</th>
+        <th>Description</th>
+        <th>Save</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (rows.length === 0) { %>
+        <tr><td colspan="8" class="text-center text-muted">Δεν βρέθηκαν αποτελέσματα.</td></tr>
+      <% } else { %>
+        <% rows.forEach(r => { %>
+          <tr class="<%= r.difference !== 0 ? 'table-danger' : '' %>">
+            <form method="POST" action="/points-review/update">
+              <td><%= r.athlete_id %>
+                <input type="hidden" name="athlete_id" value="<%= r.athlete_id %>">
+              </td>
+              <td><%= r.full_name %></td>
+              <td>
+                <input type="number" step="0.001" name="total_after" value="<%= r.athlete_total %>" class="form-control form-control-sm">
+              </td>
+              <td><%= r.history_total %></td>
+              <td><%= r.difference %></td>
+              <td>
+                <input type="number" name="season_year" value="<%= r.season_year || '' %>" class="form-control form-control-sm">
+              </td>
+              <td>
+                <input type="text" name="description" value="<%= r.last_description || '' %>" class="form-control form-control-sm">
+              </td>
+              <td>
+                <button type="submit" class="btn btn-primary btn-sm">💾 Save</button>
+              </td>
+            </form>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</div>

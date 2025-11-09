@@ -1,0 +1,69 @@
+<div class="container mt-4">
+  <h2>🏆 Athletes Points Manager</h2>
+
+  <!-- 🔍 Search -->
+  <form class="row g-3 mb-3" method="GET" action="/points-manager">
+    <div class="col-md-6">
+      <input type="text" name="search" placeholder="Αναζήτηση αθλητή..." value="<%= search %>" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-dark w-100">🔍 Search</button>
+    </div>
+    <% if (search) { %>
+      <div class="col-md-2">
+        <a href="/points-manager" class="btn btn-secondary w-100">✖️ Clear</a>
+      </div>
+    <% } %>
+  </form>
+
+  <table class="table table-bordered table-hover table-sm align-middle">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Total Points</th>
+        <th>Earned Points</th>
+        <th>Closing 2024</th>
+        <th>Starting 2025</th>
+        <th>History Total</th>
+        <th>Διαφορά</th>
+        <th>Description</th>
+        <th>Save</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (rows.length === 0) { %>
+        <tr><td colspan="10" class="text-center text-muted">Δεν βρέθηκαν αποτελέσματα.</td></tr>
+      <% } else { %>
+        <% rows.forEach(r => { %>
+          <tr class="<%= r.diff !== 0 ? 'table-danger' : '' %>">
+            <form method="POST" action="/points-manager/update">
+              <td><%= r.athlete_id %>
+                <input type="hidden" name="athlete_id" value="<%= r.athlete_id %>">
+              </td>
+              <td><%= r.full_name %></td>
+              <td>
+                <input type="number" step="0.001" name="total_points" value="<%= r.total_points %>" class="form-control form-control-sm text-end">
+              </td>
+              <td class="text-end"><%= r.earned_points || 0 %></td>
+              <td>
+                <input type="number" step="0.001" name="closing_2024" value="<%= r.closing_2024 || 0 %>" class="form-control form-control-sm text-end">
+              </td>
+              <td>
+                <input type="number" step="0.001" name="starting_2025" value="<%= r.starting_2025 || 0 %>" class="form-control form-control-sm text-end">
+              </td>
+              <td class="text-end"><%= r.history_total || 0 %></td>
+              <td class="text-end fw-bold"><%= r.diff %></td>
+              <td>
+                <input type="text" name="description" value="<%= r.last_description %>" class="form-control form-control-sm">
+              </td>
+              <td>
+                <button type="submit" class="btn btn-primary btn-sm">💾 Save</button>
+              </td>
+            </form>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</div>

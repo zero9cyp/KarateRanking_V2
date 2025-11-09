@@ -1,71 +1,103 @@
-🥋 KARATE RANKING SYSTEM — Summary of Official Rules
-🧮 1. Points for placement in tournaments
-Placement	Points
-1st	70
-2nd	50
-3rd	30
-5th	20
-7th	10
-9th	5
-🏆 2. Points for wins
-Wins	Points
+🥋 ΣΥΣΤΗΜΑ ΑΞΙΟΛΟΓΗΣΗΣ ΑΘΛΗΤΩΝ Κ.Ο.Κ.
+
+Βασίζεται στους κανόνες της WKF (World Karate Federation), με κάποιες προσαρμογές.
+
+📊 1️⃣ ΠΙΝΑΚΑΣ ΘΕΣΕΩΝ & ΒΑΘΜΩΝ (ΑΝΑ ΠΡΩΤΑΘΛΗΜΑ)
+Θέση	Βαθμοί
+1η	70
+2η	50
+3η	30
+5η	20
+7η	10
+9η	5
+🥇 2️⃣ ΠΟΝΤΟΙ ΑΠΟ ΝΙΚΕΣ
+Νίκες	Πόντοι
 1	8
 2	16
 3	24
 4	32
 5	40
-🎯 3. Participation points
 
-Each athlete receives 4 points per tournament entered.
+📌 Επιπλέον, κάθε συμμετοχή δίνει 4 βαθμούς συμμετοχής.
 
-🧑‍🎓 4. Age category transfer (promotion)
-
-When moving to a new age category, total points are reduced by 50%.
-
-Example: Cadet → Junior → points ÷ 2
-
-⚖️ 5. Weight category change
-
-When changing weight class (within same age group), total points are reduced by 25%.
-
-🕐 6. Senior (Men/Women) yearly decay
-
-Each year, total points for SENIORS decrease by 25% automatically.
-
-🗓️ 7. Inactivity penalty
-
-If an athlete misses the national championship for 2 years, their ranking is reset to zero.
-
-🌍 8. Tournament difficulty factor
-
-Each type of championship has a difficulty multiplier (to multiply earned points):
-
-Tournament	Difficulty Factor
-Παγκύπρια Πρωταθλήματα	1
-Αγώνες Μικρών Κρατών Ευρώπης (μόνο καράτε)	1.5
+🏆 3️⃣ ΠΙΝΑΚΑΣ ΠΡΩΤΑΘΛΗΜΑΤΩΝ (ΣΥΝΤΕΛΕΣΤΗΣ ΔΥΣΚΟΛΙΑΣ)
+Πρωτάθλημα	Συντελεστής Δυσκολίας
+Παγκύπριο Πρωτάθλημα	1
+Αγώνες Μικρών Κρατών Ευρώπης (μόνο Karate)	1.5
 Βαλκανικό Πρωτάθλημα	2
 Μεσογειακό Πρωτάθλημα	2
-WKF Karate 1 – Youth League	2*
-WKF Karate 1 – Series A	2*
+WKF Karate 1 Youth League	2*
+WKF Karate 1 Series A	2*
 Αγώνες Μικρών Κρατών Ευρώπης (όλα τα αθλήματα)	2
 Μεσογειακοί Αγώνες	3
-Ευρωπαϊκό Πρωτάθλημα (U21)	3
+Ευρωπαϊκό Πρωτάθλημα Εφήβων/Νέων/U21	3
 Ευρωπαϊκό Πρωτάθλημα Ανδρών/Γυναικών	4
-WKF Karate 1 – Premier League	4*
+WKF Premier League	4*
 Ευρωπαϊκοί Αγώνες	4*
-Παγκόσμιο Πρωτάθλημα (U21)	4
-Παγκόσμιο Πρωτάθλημα (Seniors)	5
+Παγκόσμιο Πρωτάθλημα Εφήβων/Νέων/U21	4
+Παγκόσμιο Πρωτάθλημα Ανδρών/Γυναικών	5
 
-* Given only if the federation decides to count those tournaments.
+* Πόντοι αποδίδονται μόνο εφόσον υπάρχει απόφαση Ομοσπονδίας για συμμετοχή.
 
-⚠️ 9. Non-counted events
+👶 4️⃣ ΗΛΙΚΙΑΚΕΣ ΚΑΤΗΓΟΡΙΕΣ
 
-No points for:
+ΠΑΙΔΕΣ (U13, U14)
 
-Training seminars / camps
+CADET (14–15)
 
-Pre-national training
+JUNIOR (16–17)
 
-Team (group) events
+U21 (18–20)
 
-“Παγκύπρια Κύπελλα” (Cups)
+ΑΝΔΡΩΝ / ΓΥΝΑΙΚΩΝ (18+, Kata 16+)
+
+🔁 5️⃣ ΜΕΤΑΦΟΡΑ ΠΟΝΤΩΝ ΜΕΤΑΞΥ ΚΑΤΗΓΟΡΙΩΝ
+Αλλαγή	Κανόνας
+Αλλαγή ηλικιακής κατηγορίας	Χάνεται το 50% των πόντων
+Αλλαγή κατηγορίας κιλών	Χάνεται το 25% των πόντων
+Αλλαγή κατηγορίας ενηλίκων (Α/Γ)	Μείωση 25% κάθε χρόνο
+
+📘 Παράδειγμα:
+Αθλητής CADETS με 150 πόντους → όταν πάει JUNIOR → 75 πόντοι.
+Αν αλλάξει από -52kg σε -57kg → 25% μείωση → 75 πόντοι γίνονται 56,25.
+
+🕹️ 6️⃣ ΓΕΝΙΚΟΙ ΚΑΝΟΝΕΣ ΥΠΟΛΟΓΙΣΜΟΥ
+
+Αξιολογούνται μόνο επίσημοι αγώνες (όχι προπονητικά camps ή προεθνικές).
+
+Δεν βαθμολογούνται ομαδικές κατηγορίες.
+
+Αν αθλητής δεν συμμετάσχει σε Παγκύπριο για 2 χρόνια → μηδενίζεται.
+
+Σε διεθνές τουρνουά, για να βαθμολογηθεί πρέπει:
+
+να υπάρχουν τουλάχιστον 3 χώρες,
+
+να έχει κάνει τουλάχιστον μία νίκη.
+
+Παγκύπρια Κύπελλα δεν υπολογίζονται.
+
+Κάθε χρόνο γίνεται μείωση 25% στους πόντους Ανδρών/Γυναικών.
+
+Η σειρά κατάταξης μπορεί να παρακαμφθεί μόνο αν η διαφορά δύο αθλητών είναι <50 πόντοι (κατά πλειοψηφία επιτροπής).
+
+Σημειώνονται επιτυχίες των τελευταίων 2 χρόνων.
+
+Αν αθλητής αρνηθεί συμμετοχή, ο επόμενος δεν πρέπει να έχει >150 πόντους διαφορά.
+
+💡 ΣΥΜΠΕΡΑΣΜΑ: ΠΩΣ ΠΡΕΠΕΙ ΝΑ ΛΕΙΤΟΥΡΓΕΙ Ο ΥΠΟΛΟΓΙΣΜΟΣ
+
+1️⃣ Κάθε αποτέλεσμα →
+points_earned = (points_from_position + points_from_wins + participation_points) * tournament_difficulty
+
+2️⃣ Αν αλλάξει ηλικία →
+new_total = old_total * 0.5
+
+3️⃣ Αν αλλάξει κιλά →
+new_total = old_total * 0.75
+
+4️⃣ Κάθε χρόνο (αν είναι SENIOR) →
+total = total * 0.75
+
+5️⃣ Αν δεν αγωνιστεί σε Παγκύπριο για 2 χρόνια →
+total = 0

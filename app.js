@@ -95,6 +95,7 @@ const athleteHistoryV2 = require("./routes/athleteHistoryV2.js");
 const adminRecalculateV2 = require("./routes/adminRecalculateV2");
 const routeAdminPanel =  require("./routes/adminPanelV2")
 const pointsRoutes = require("./routes/points");
+const adminRecalculateTotals = require('./routes/adminRecalculateTotals');
 // -------------------------------
 // Home route
 // -------------------------------
@@ -142,6 +143,7 @@ app.use("/ranking-v2", rankingV2);
 app.use("/athlete", ensureAuthenticated, athleteHistoryV2);
 app.use("/admin",ensureAuthenticated, routeAdminPanel);
 app.use("/", ensureAuthenticated, adminRecalculateV2);
+app.use('/admin/recalculate-totals', ensureAdmin, adminRecalculateTotals);
 // -------------------------------
 // 404 fallback
 // -------------------------------
