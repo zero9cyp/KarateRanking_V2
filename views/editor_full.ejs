@@ -1,93 +1,64 @@
 <div class="container mt-4">
-  <h1 class="mb-4">🏅 Full Athlete Management</h1>
+  <h2 class="mb-3">🏋️‍♂️ Διαχείριση Αθλητών</h2>
 
-  <div class="table-responsive">
-    <table class="table table-bordered table-striped align-middle">
-      <thead class="table-dark">
-        <div class="table-responsive">
-  <table class="table table-bordered table-striped align-middle" style="table-layout: auto; width:100%;">
-    <colgroup>
-      <col style="width: 3%;">
-      <col style="width: 20%;">  <!-- 👈 wider name column -->
-      <col style="width: 10%;">
-      <col style="width: 7%;">
-      <col style="width: 10%;">
-      <col style="width: 10%;">
-      <col style="width: 15%;">
-      <col style="width: 7%;">
-      <col style="width: 10%;">
-      <col style="width: 8%;">
-    </colgroup>
+  <form method="GET" class="row mb-3">
+    <div class="col-md-4">
+      <input type="text" name="search" class="form-control" placeholder="Αναζήτηση αθλητή...">
+    </div>
+    <div class="col-md-3">
+      <select name="status" class="form-select">
+        <option value="">Όλες οι καταστάσεις</option>
+        <option value="pending" <%= filter==='pending'?'selected':'' %>>🕓 Pending</option>
+        <option value="ok" <%= filter==='ok'?'selected':'' %>>✅ OK</option>
+        <option value="issue" <%= filter==='issue'?'selected':'' %>>⚠️ Issue</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-dark w-100">Φίλτρο</button>
+    </div>
+  </form>
 
-        <tr>
-          <th>ID</th>
-          <th>Full Name</th>
-          <th>Birth Date</th>
-          <th>Gender</th>
-          <th>Age Cat</th>
-          <th>Weight Cat</th>
-          <th>Club</th>
-          <th>Total Points</th>
-          <th>Save / Results</th>
-          <th>Delete</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% athletes.forEach(a => { %>
-          <tr>
-            <!-- Update form -->
-            <form action="/editor/update" method="POST">
-              <input type="hidden" name="id" value="<%= a.id %>">
-              <td><%= a.id %></td>
-              <td><input name="full_name" class="form-control" value="<%= a.full_name %>"></td>
-              <td><input type="date" name="birth_date" class="form-control" value="<%= a.birth_date %>"></td>
-              <td>
-                <select name="gender" class="form-select">
-                  <option value="male" <%= a.gender === 'male' ? 'selected' : '' %>>Male</option>
-                  <option value="female" <%= a.gender === 'female' ? 'selected' : '' %>>Female</option>
-                </select>
-              </td>
-              <td>
-                <select name="age_category_id" class="form-select">
-                  <option value="">-</option>
-                  <% ages.forEach(cat => { %>
-                    <option value="<%= cat.id %>" <%= a.age_category_id === cat.id ? 'selected' : '' %>><%= cat.name %></option>
-                  <% }) %>
-                </select>
-              </td>
-              <td>
-                <select name="weight_category_id" class="form-select">
-                  <option value="">-</option>
-                  <% weights.forEach(w => { %>
-                    <option value="<%= w.id %>" <%= a.weight_category_id === w.id ? 'selected' : '' %>><%= w.name %></option>
-                  <% }) %>
-                </select>
-              </td>
-              <td>
-                <select name="club_id" class="form-select">
-                  <option value="">-</option>
-                  <% clubs.forEach(c => { %>
-                    <option value="<%= c.id %>" <%= a.club_id === c.id ? 'selected' : '' %>><%= c.name %></option>
-                  <% }) %>
-                </select>
-              </td>
-              <td><input type="number" name="total_points" class="form-control" value="<%= a.total_points %>"></td>
-              <td>
-                <div class="d-flex gap-1">
-                  <button type="submit" class="btn btn-success btn-sm">💾</button>
-                  <a href="/editor/results/<%= a.id %>" class="btn btn-info btn-sm">🏆</a>
-                </div>
-              </td>
+  <table class="table table-striped table-bordered table-hover align-middle">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>#</th>
+        <th>Όνομα</th>
+        <th>Σύλλογος</th>
+        <th>Κατηγορία Ηλικίας</th>
+        <th>Κατηγορία Κιλών</th>
+        <th>Πόντοι</th>
+        <th>Κατάσταση</th>
+        <th>Τελευταίος Έλεγχος</th>
+        <th>Ενέργεια</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% athletes.forEach((a, i) => { %>
+        <tr class="text-center">
+          <td><%= i + 1 %></td>
+          <td class="text-start fw-bold"><%= a.full_name %></td>
+          <td><%= a.club || '-' %></td>
+          <td><%= a.age_category || '-' %></td>
+          <td><%= a.weight_category || '-' %></td>
+          <td class="fw-bold text-success"><%= a.total_points || 0 %></td>
+          <td>
+            <% if (a.review_status === 'ok') { %>
+              <span class="badge bg-success">OK</span>
+            <% } else if (a.review_status === 'issue') { %>
+              <span class="badge bg-danger">Issue</span>
+            <% } else { %>
+              <span class="badge bg-warning text-dark">Pending</span>
+            <% } %>
+          </td>
+          <td><%= a.last_reviewed_at || '—' %></td>
+          <td>
+            <a href="/editor/<%= a.id %>" class="btn btn-sm btn-primary">✏️ Edit</a>
+            <form action="/editor/delete/<%= a.id %>" method="POST" style="display:inline">
+              <button class="btn btn-sm btn-danger" onclick="return confirm('Διαγραφή;')">🗑️</button>
             </form>
-            <td>
-              <form action="/editor/delete/<%= a.id %>" method="POST" onsubmit="return confirm('Delete <%= a.full_name %>?')">
-                <button type="submit" class="btn btn-danger btn-sm">🗑</button>
-              </form>
-            </td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
 </div>
-

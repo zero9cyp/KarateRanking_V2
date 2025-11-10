@@ -1,0 +1,271 @@
+<div class="container mt-4">
+  <h3>🏅 Διαχείριση Αθλητή: <%= athlete.full_name %></h3>
+
+  <div class="d-flex justify-content-between align-items-center my-3">
+  <h5>
+    Κατάσταση Ελέγχου: 
+    <% if (athlete.review_status === 'ok') { %>
+      <span class="badge bg-success">✅ Εντάξει</span>
+    <% } else if (athlete.review_status === 'issue') { %>
+      <span class="badge bg-danger">⚠️ Πρόβλημα</span>
+    <% } else { %>
+      <span class="badge bg-secondary">⏳ Εκκρεμεί</span>
+    <% } %>
+  </h5>
+
+  <form method="POST" action="/editor/review-status/<%= athlete.id %>" class="d-flex gap-2">
+    <button name="status" value="ok" class="btn btn-success btn-sm">✅ Εντάξει</button>
+    <button name="status" value="issue" class="btn btn-danger btn-sm">⚠️ Πρόβλημα</button>
+    <button name="status" value="pending" class="btn btn-secondary btn-sm">⏳ Εκκρεμεί</button>
+  </form>
+</div>
+
+
+  <ul class="nav nav-tabs mt-3" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">Προφίλ</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab">Αποτελέσματα</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="points-tab" data-bs-toggle="tab" data-bs-target="#points" type="button" role="tab">Πόντοι</button>
+    </li>
+  </ul>
+
+  <div class="tab-content border p-3" id="myTabContent">
+    <!-- =================== Προφίλ =================== -->
+    <div class="tab-pane fade show active" id="profile" role="tabpanel">
+      <form class="row g-3" method="post" action="/editor-full/<%= athlete.id %>/profile/update">
+        <div class="col-md-6">
+          <label class="form-label">Full Name</label>
+          <input name="full_name" class="form-control" value="<%= athlete.full_name %>">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Birth Date</label>
+          <input name="birth_date" type="date" class="form-control" value="<%= athlete.birth_date || '' %>">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Gender</label>
+          <select name="gender" class="form-select">
+            <option value="male" <%= athlete.gender==='male'?'selected':'' %>>male</option>
+            <option value="female" <%= athlete.gender==='female'?'selected':'' %>>female</option>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Age Category</label>
+          <select name="age_category_id" class="form-select">
+            <option value=""></option>
+            <% ages.forEach(x => { %>
+              <option value="<%= x.id %>" <%= x.id===athlete.age_category_id?'selected':'' %>><%= x.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Weight Category</label>
+          <select name="weight_category_id" class="form-select">
+            <option value=""></option>
+            <% weights.forEach(x => { %>
+              <option value="<%= x.id %>" <%= x.id===athlete.weight_category_id?'selected':'' %>><%= x.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Club</label>
+          <select name="club_id" class="form-select">
+            <option value=""></option>
+            <% clubs.forEach(x => { %>
+              <option value="<%= x.id %>" <%= x.id===athlete.club_id?'selected':'' %>><%= x.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Total Points</label>
+          <input name="total_points" type="number" step="0.001" class="form-control" value="<%= athlete.total_points || 0 %>">
+        </div>
+
+        <div class="col-12">
+          <button class="btn btn-primary">💾 Αποθήκευση</button>
+          <a class="btn btn-secondary" href="/editor-full">⬅ Πίσω</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- =================== Αποτελέσματα =================== -->
+    <div class="tab-pane fade" id="results" role="tabpanel">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="m-0">Αποτελέσματα ΤΟΥΡΝΟΥΑ</h5>
+        <button class="btn btn-sm btn-outline-success" onclick="toggleBlock('addResultBlock')">➕ Προσθήκη</button>
+      </div>
+
+      <div id="addResultBlock" class="border rounded p-3 mb-3" style="display:none;">
+        <form method="post" action="/editor-full/<%= athlete.id %>/results/add" class="row g-2">
+          <div class="col-md-5">
+            <label class="form-label">Τουρνουά</label>
+            <select name="tournament_id" class="form-select" required>
+              <option value=""></option>
+              <% tournaments.forEach(t => { %>
+                <option value="<%= t.id %>"><%= t.name %> — <%= t.date %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Θέση</label>
+            <input type="number" name="placement" class="form-control" min="0">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Νίκες</label>
+            <input type="number" name="wins" class="form-control" min="0">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Πόντοι</label>
+            <input type="number" step="0.001" name="points_earned" class="form-control">
+          </div>
+          <div class="col-md-1">
+            <label class="form-label">Season</label>
+            <input type="number" name="season_year" class="form-control" value="2025">
+          </div>
+          <div class="col-12">
+            <button class="btn btn-success btn-sm">💾 Αποθήκευση</button>
+          </div>
+        </form>
+      </div>
+
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light text-center">
+          <tr>
+            <th>Τουρνουά</th>
+            <th>Ημ/νία</th>
+            <th>Θέση</th>
+            <th>Νίκες</th>
+            <th>Πόντοι</th>
+            <th>Season</th>
+            <th>Ενέργειες</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% results.forEach(r => { %>
+            <tr class="text-center">
+              <td class="text-start"><%= r.tournament_name %></td>
+              <td><%= r.tournament_date %></td>
+              <td>
+                <form class="d-flex gap-1" method="post" action="/editor-full/<%= athlete.id %>/results/<%= r.id %>/update">
+                  <input type="hidden" name="tournament_id" value="<%= r.tournament_id %>">
+                  <input name="placement" type="number" class="form-control form-control-sm" value="<%= r.placement || 0 %>">
+              </td>
+              <td><input name="wins" type="number" class="form-control form-control-sm" value="<%= r.wins || 0 %>"></td>
+              <td><input name="points_earned" type="number" step="0.001" class="form-control form-control-sm" value="<%= r.points_earned || 0 %>"></td>
+              <td><input name="season_year" type="number" class="form-control form-control-sm" value="<%= r.season_year || '' %>"></td>
+              <td class="text-nowrap">
+                  <button class="btn btn-primary btn-sm">💾</button>
+                </form>
+                <form method="post" class="d-inline" action="/editor-full/<%= athlete.id %>/results/<%= r.id %>/delete">
+                  <button class="btn btn-outline-danger btn-sm" onclick="return confirm('Διαγραφή;')">🗑️</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- =================== Πόντοι (Ιστορικό) =================== -->
+ <!-- =================== Πόντοι (Ιστορικό) =================== -->
+<!-- =================== Πόντοι (Ιστορικό ανά Discipline) =================== -->
+<div class="tab-pane fade" id="points" role="tabpanel">
+  <h5 class="mt-3">🥋 KUMITE Πόντοι</h5>
+  <button class="btn btn-sm btn-outline-success mb-2" onclick="toggleBlock('addKumiteBlock')">➕ Προσθήκη</button>
+
+  <div id="addKumiteBlock" class="border rounded p-3 mb-3" style="display:none;">
+    <form method="post" action="/editor-full/<%= athlete.id %>/points/add/KUMITE" class="row g-2">
+      <div class="col-md-3">
+        <input type="number" step="0.001" name="total_after" class="form-control" placeholder="Νέο σύνολο" required>
+      </div>
+      <div class="col-md-2">
+        <input type="number" name="season_year" class="form-control" value="2025">
+      </div>
+      <div class="col-md-7">
+        <input type="text" name="description" class="form-control" placeholder="Περιγραφή...">
+      </div>
+      <div class="col-12">
+        <button class="btn btn-success btn-sm">💾 Αποθήκευση</button>
+      </div>
+    </form>
+  </div>
+
+  <table class="table table-striped table-bordered align-middle mb-5">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>Ημ/νία</th><th>Πριν</th><th>Μετά</th><th>Διαφορά</th><th>Σύνολο</th><th>Season</th><th>Περιγραφή</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% historyKumite.forEach(h => { %>
+        <tr class="text-center">
+          <td><%= h.date %></td>
+          <td><%= h.points_before || 0 %></td>
+          <td><%= h.points_after || 0 %></td>
+          <td class="<%= (h.delta||0)>=0?'text-success':'text-danger' %>"><%= (h.delta||0).toFixed(3) %></td>
+          <td><%= h.total_after || 0 %></td>
+          <td><%= h.season_year %></td>
+          <td class="text-start"><%= h.description || '' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <h5 class="mt-3">🧘 KATA Πόντοι</h5>
+  <button class="btn btn-sm btn-outline-success mb-2" onclick="toggleBlock('addKataBlock')">➕ Προσθήκη</button>
+
+  <div id="addKataBlock" class="border rounded p-3 mb-3" style="display:none;">
+    <form method="post" action="/editor-full/<%= athlete.id %>/points/add/KATA" class="row g-2">
+      <div class="col-md-3">
+        <input type="number" step="0.001" name="total_after" class="form-control" placeholder="Νέο σύνολο" required>
+      </div>
+      <div class="col-md-2">
+        <input type="number" name="season_year" class="form-control" value="2025">
+      </div>
+      <div class="col-md-7">
+        <input type="text" name="description" class="form-control" placeholder="Περιγραφή...">
+      </div>
+      <div class="col-12">
+        <button class="btn btn-success btn-sm">💾 Αποθήκευση</button>
+      </div>
+    </form>
+  </div>
+
+  <table class="table table-striped table-bordered align-middle">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>Ημ/νία</th><th>Πριν</th><th>Μετά</th><th>Διαφορά</th><th>Σύνολο</th><th>Season</th><th>Περιγραφή</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% historyKata.forEach(h => { %>
+        <tr class="text-center">
+          <td><%= h.date %></td>
+          <td><%= h.points_before || 0 %></td>
+          <td><%= h.points_after || 0 %></td>
+          <td class="<%= (h.delta||0)>=0?'text-success':'text-danger' %>"><%= (h.delta||0).toFixed(3) %></td>
+          <td><%= h.total_after || 0 %></td>
+          <td><%= h.season_year %></td>
+          <td class="text-start"><%= h.description || '' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+  </div>
+</div>
+
+<script>
+function toggleBlock(id){
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+</script>

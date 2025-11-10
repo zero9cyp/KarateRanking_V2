@@ -96,6 +96,11 @@ const adminRecalculateV2 = require("./routes/adminRecalculateV2");
 const routeAdminPanel =  require("./routes/adminPanelV2")
 const pointsRoutes = require("./routes/points");
 const adminRecalculateTotals = require('./routes/adminRecalculateTotals');
+const adminRankingEditor = require("./routes/adminRankingEditor");
+const rankingPublic = require("./routes/rankingPublic");
+const apiWeights = require("./routes/apiWeights");
+const adminResultsManager = require("./routes/adminResults");
+const editorFull = require("./routes/editorFull");
 // -------------------------------
 // Home route
 // -------------------------------
@@ -109,8 +114,10 @@ app.get('/', (req, res) => {
 // -------------------------------
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
-app.use('/ranking', rankingRouter); // Public ranking view
+// app.use('/ranking', rankingRouter); // ❌ Παλιά δημόσια κατάταξη
+app.use('/ranking', rankingV2);       // ✅ Νέα κατάταξη για KUMITE & KATA
 app.use('/index', ensureAuthenticated, indexRoutes);
+app.use("/ranking-public", rankingPublic);
 // -------------------------------
 // Authenticated-only routes
 // -------------------------------
@@ -144,6 +151,11 @@ app.use("/athlete", ensureAuthenticated, athleteHistoryV2);
 app.use("/admin",ensureAuthenticated, routeAdminPanel);
 app.use("/", ensureAuthenticated, adminRecalculateV2);
 app.use('/admin/recalculate-totals', ensureAdmin, adminRecalculateTotals);
+app.use("/admin/ranking-editor", ensureAdmin, adminRankingEditor);
+app.use("/api", apiWeights);
+app.use("/admin/results", ensureAdmin, adminResultsManager);
+app.use("/editor-full", ensureAdmin, editorFull);
+
 // -------------------------------
 // 404 fallback
 // -------------------------------

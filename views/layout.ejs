@@ -28,11 +28,9 @@
 
       <div class="collapse navbar-collapse" id="navbarContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link fw-bold" href="/ranking">📊 Ranking</a>
-          </li>
-
-          <% if(currentUser) { %>
+          <li class="nav-item"><a class="nav-link fw-bold" href="/ranking">📊 Ranking</a></li>
+          <li class="nav-item"><a class="nav-link fw-bold" href="/ranking-public">🌍 Δημόσια Κατάταξη</a></li>
+         <% if(currentUser) { %>
           <li class="nav-item"><a class="nav-link" href="/athletes">Athletes</a></li>
           <li class="nav-item"><a class="nav-link" href="/tournaments">Tournaments</a></li>
           <li class="nav-item"><a class="nav-link" href="/clubs">Clubs</a></li>
@@ -46,18 +44,24 @@
               <li><a class="dropdown-item" href="/users/add">Add User</a></li>
               <li><a class="dropdown-item" href="/users/pending-approvals">Pending Approvals</a></li>
               <li><a class="dropdown-item" href="/users/reset-password">Reset Password</a></li>
-               <li><a class="dropdown-item" href="/admin/results">View / Edit Results</a></li>
-               <li><a class="dropdown-item" href="/editor">Athlete Data Editor</a></li>
-               <li><a class="dropdown-item" href="/duplicates">Find Duplicates</a></li>
-               <li><a class="dropdown-item" href="/ranking-v2">Ranking V2</a></li>
-               <li><a class="dropdown-item" href="/points/overview">Points Overview</a></li>
-               <li><a class="dropdown-item" href="/backup">💾 Backup</a></li>
-               <li><a class="dropdown-item" href="/restore">♻️ Restore</a></li>
-               <li><a class="dropdown-item" href="/points-review">♻️👉points-review</a></li>
-               <li><a class="dropdown-item" href="/points-manager">🏆 Points Manager</a></li>
+              <!-- <li><a class="dropdown-item" href="/admin/results">View / Edit Results</a></li> -->
+              <!-- <li><a class="dropdown-item" href="/editor">Athlete Data Editor</a></li> -->
+              <!-- <li><a class="dropdown-item" href="/duplicates">Find Duplicates</a></li> -->
+              <li><a class="dropdown-item" href="/ranking-v2">Ranking V2</a></li>
+              <!-- <li><a class="dropdown-item" href="/points/overview">Points Overview</a></li> -->
+              <li><a class="dropdown-item" href="/backup">💾 Backup</a></li>
+              <li><a class="dropdown-item" href="/restore">♻️ Restore</a></li>
+              <!-- <li><a class="dropdown-item" href="/points-review">♻️👉points-review</a></li> -->
+              <!-- <li><a class="dropdown-item" href="/points-manager">🏆 Points Manager</a></li> -->
+              <li><a class="dropdown-item" href="/ranking/kumite">🥋 Kumite Ranking</a></li>
+              <li><a class="dropdown-item" href="/ranking/kata">🧘 Kata Ranking</a></li>
+              <!-- <li><a class="dropdown-item" href="/admin/ranking-editor">🧘Ranking EDITOR</a></li> -->
+              <!-- <li><a class="dropdown-item" href="/editor">🧘EDITOR</a></li> -->
+              <li><a class="dropdown-item" href="/editor-full">🧍‍♂️ Athlete Full Editor</a></li>
+              
 
 
-               <!-- <li><a class="dropdown-item" href="/duplicates">Find Duplicates</a></li> -->
+              <!-- <li><a class="dropdown-item" href="/duplicates">Find Duplicates</a></li> -->
             </ul>
           </li>
           <% } %>

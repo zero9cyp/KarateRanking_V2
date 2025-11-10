@@ -1,0 +1,35 @@
+<div class="container mt-5">
+  <div class="card shadow-sm p-4">
+    <h3 class="mb-4 text-center">🔍 Αναζήτηση Αθλητή για Επεξεργασία</h3>
+
+    <form method="GET" action="/editor-full" class="mb-4">
+      <div class="input-group">
+        <input type="text" class="form-control" name="q" placeholder="Πληκτρολόγησε όνομα..." value="<%= q %>">
+        <button class="btn btn-primary">Αναζήτηση</button>
+      </div>
+    </form>
+
+    <% if (athletes && athletes.length) { %>
+      <table class="table table-hover table-striped align-middle text-center">
+        <thead class="table-dark">
+          <tr><th>#</th><th>Όνομα</th><th>Φύλο</th><th>Πόντοι</th><th>Ενέργεια</th></tr>
+        </thead>
+        <tbody>
+          <% athletes.forEach((a, i) => { %>
+            <tr>
+              <td><%= i + 1 %></td>
+              <td class="text-start"><%= a.full_name %></td>
+              <td><%= a.gender || '-' %></td>
+              <td><%= a.total_points || 0 %></td>
+              <td>
+                <a href="/editor-full/<%= a.id %>" class="btn btn-sm btn-success">✏️ Επεξεργασία</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else if (q) { %>
+      <div class="alert alert-warning text-center">Δεν βρέθηκαν αποτελέσματα για "<%= q %>".</div>
+    <% } %>
+  </div>
+</div>

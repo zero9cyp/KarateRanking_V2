@@ -1,0 +1,47 @@
+<div class="container mt-4">
+  <h2 class="mb-4 text-center">🏆 Διαχείριση Αποτελεσμάτων</h2>
+
+  <table class="table table-striped table-bordered table-hover align-middle">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>ID</th>
+        <th>Αθλητής</th>
+        <th>Τουρνουά</th>
+        <th>Είδος</th>
+        <th>Ηλικία</th>
+        <th>Κιλά</th>
+        <th>Θέση</th>
+        <th>Νίκες</th>
+        <th>Πόντοι</th>
+        <th>Σεζόν</th>
+        <th>Approved</th>
+        <th>Save</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rows.forEach(r => { %>
+        <tr class="<%= r.approved ? '' : 'table-warning' %>">
+          <form method="POST" action="/admin/results/update">
+            <td><%= r.id %><input type="hidden" name="id" value="<%= r.id %>"></td>
+            <td><%= r.athlete_name %></td>
+            <td><%= r.tournament_name %></td>
+            <td>
+              <select name="event_type" class="form-select form-select-sm">
+                <option value="kumite" <%= r.event_type === 'kumite' ? 'selected' : '' %>>KUMITE</option>
+                <option value="kata" <%= r.event_type === 'kata' ? 'selected' : '' %>>KATA</option>
+              </select>
+            </td>
+            <td><%= r.age_category %></td>
+            <td><%= r.weight_category %></td>
+            <td><input type="number" name="placement" value="<%= r.placement %>" class="form-control form-control-sm"></td>
+            <td><input type="number" name="wins" value="<%= r.wins %>" class="form-control form-control-sm"></td>
+            <td><input type="number" step="0.01" name="points_earned" value="<%= r.points_earned %>" class="form-control form-control-sm"></td>
+            <td><%= r.season_year %></td>
+            <td><input type="checkbox" name="approved" value="1" <%= r.approved ? 'checked' : '' %>></td>
+            <td><button class="btn btn-success btn-sm">💾</button></td>
+          </form>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>

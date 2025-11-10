@@ -1,0 +1,140 @@
+<div class="container mt-5">
+  <!-- HEADER -->
+  <div class="text-center mb-5 p-4 rounded shadow-sm bg-gradient"
+       style="background: linear-gradient(120deg, #dc3545, #007bff); color: white;">
+    <h1 class="fw-bold">🏆 Karate National Ranking</h1>
+    <p class="lead">Δες την κατάταξη ανά κατηγορία, ηλικία, κιλά και σεζόν</p>
+  </div>
+
+  <!-- FILTER FORM -->
+  <form method="GET" action="/ranking-public/view" class="row g-3 justify-content-center mb-4">
+    <div class="col-md-2">
+      <label class="form-label fw-bold">Είδος</label>
+      <select name="type" class="form-select">
+        <option value="kumite" <%= selection.event_type === "kumite" ? "selected" : "" %>>🥋 KUMITE</option>
+        <option value="kata" <%= selection.event_type === "kata" ? "selected" : "" %>>🧘 KATA</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label fw-bold">Σεζόν</label>
+      <select name="season" class="form-select">
+        <% seasons.forEach(s => { %>
+          <option value="<%= s %>" <%= s == selection.season ? "selected" : "" %>><%= s %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label fw-bold">Ηλικιακή Κατηγορία</label>
+      <select name="age_id" id="ageSelect" class="form-select">
+        <option value="">-- Επιλογή --</option>
+        <% ageCategories.forEach(ac => { %>
+          <option value="<%= ac.id %>" <%= ac.id == selection.age_id ? "selected" : "" %>><%= ac.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label fw-bold">Κατηγορία Κιλών</label>
+      <select name="weight_id" id="weightSelect" class="form-select">
+        <option value="">-- Επιλογή --</option>
+        <% weightCategories.forEach(wc => { %>
+          <option value="<%= wc.id %>" <%= wc.id == selection.weight_id ? "selected" : "" %>><%= wc.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-2 align-self-end">
+      <button class="btn btn-primary w-100">🔍 Προβολή</button>
+    </div>
+  </form>
+
+  <!-- PODIUM -->
+  <% if (podium && podium.length) { %>
+  <div class="row justify-content-center text-center mb-5">
+    <% const colors = ['#FFD700', '#C0C0C0', '#CD7F32']; %>
+    <% podium.forEach((p, idx) => { %>
+      <div class="col-md-3 m-2">
+        <div class="card shadow-lg border-0" style="background:<%= colors[idx] %>20">
+          <div class="card-body">
+            <h1><%= ['🥇','🥈','🥉'][idx] %></h1>
+            <h5 class="fw-bold"><%= p.full_name %></h5>
+            <p class="text-muted mb-1"><%= p.age_category || '' %> - <%= p.weight_category || '' %></p>
+            <p class="fw-bold text-success fs-5"><%= p.total_points.toFixed(2) %> pts</p>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <!-- RESULTS TABLE -->
+  <% if (results && results.length > 0) { %>
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <h4 class="text-center mb-4">
+        <% if (selection.event_type === "kata") { %>
+          🧘 <b>KATA Ranking</b>
+        <% } else { %>
+          🥋 <b>KUMITE Ranking</b>
+        <% } %>
+        <br>
+        <small class="text-muted">
+          Σεζόν <%= selection.season %> | <%= results[0].age_category || "Όλες οι ηλικίες" %> - <%= results[0].weight_category || "Όλα τα κιλά" %>
+        </small>
+      </h4>
+
+      <table class="table table-hover table-bordered align-middle text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Όνομα</th>
+            <th>Φύλο</th>
+            <th>Ηλικία</th>
+            <th>Κιλά</th>
+            <th>Πόντοι</th>
+            <th>Καλύτερες Θέσεις</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% results.forEach((r, i) => { %>
+          <tr>
+            <td><%= i + 1 %></td>
+            <td class="text-start"><b><%= r.full_name %></b></td>
+            <td><%= r.gender || '-' %></td>
+            <td><%= r.age_category || '-' %></td>
+            <td><%= r.weight_category || '-' %></td>
+            <td class="fw-bold text-success"><%= r.total_points.toFixed(2) %></td>
+            <td class="text-start"><small class="text-muted"><%= r.tournament_summary || '-' %></small></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <% } else if (selection.event_type) { %>
+    <div class="alert alert-info text-center mt-4 shadow-sm">
+      Δεν υπάρχουν αποτελέσματα για αυτήν την επιλογή.
+    </div>
+  <% } %>
+</div>
+
+<!-- JS για δυναμική φόρτωση κιλών -->
+<script>
+document.getElementById("ageSelect")?.addEventListener("change", function() {
+  const ageId = this.value;
+  fetch(`/api/weights?age_id=${ageId}`)
+    .then(r => r.json())
+    .then(data => {
+      const select = document.getElementById("weightSelect");
+      select.innerHTML = '<option value="">-- Επιλογή --</option>';
+      data.forEach(w => {
+        const opt = document.createElement("option");
+        opt.value = w.id;
+        opt.textContent = w.name;
+        select.appendChild(opt);
+      });
+    });
+});
+</script>

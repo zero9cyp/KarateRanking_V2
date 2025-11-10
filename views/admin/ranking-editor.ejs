@@ -1,0 +1,56 @@
+<div class="container mt-4">
+  <h2>🏆 Ranking Editor Panel</h2>
+
+  <form method="GET" class="row mb-3">
+    <div class="col-md-4">
+      <input type="text" name="search" value="<%= search %>" class="form-control" placeholder="Αναζήτηση αθλητή...">
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-dark w-100">🔍 Αναζήτηση</button>
+    </div>
+    <div class="col-md-2">
+      <a href="/admin/ranking-editor" class="btn btn-secondary w-100">✖️ Καθαρισμός</a>
+    </div>
+  </form>
+
+  <% if (rows.length > 0) { %>
+  <table class="table table-bordered table-sm align-middle">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Gender</th>
+        <th>Age</th>
+        <th>Weight</th>
+        <th>Total Points</th>
+        <th>Kumite</th>
+        <th>Kata</th>
+        <th>Note</th>
+        <th>Save</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rows.forEach(r => { %>
+      <tr>
+        <form method="POST" action="/admin/ranking-editor/update">
+          <td><%= r.athlete_id %>
+            <input type="hidden" name="athlete_id" value="<%= r.athlete_id %>">
+          </td>
+          <td><%= r.full_name %></td>
+          <td><%= r.gender %></td>
+          <td><%= r.age_category %></td>
+          <td><%= r.weight_category %></td>
+          <td><input type="number" step="0.01" name="total_points" value="<%= r.total_points %>" class="form-control form-control-sm"></td>
+          <td><input type="number" step="0.01" name="kumite_points" value="<%= r.kumite_points %>" class="form-control form-control-sm"></td>
+          <td><input type="number" step="0.01" name="kata_points" value="<%= r.kata_points %>" class="form-control form-control-sm"></td>
+          <td><input type="text" name="note" class="form-control form-control-sm" placeholder="π.χ. manual fix"></td>
+          <td><button type="submit" class="btn btn-primary btn-sm">💾</button></td>
+        </form>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } else { %>
+  <div class="alert alert-info text-center">Δεν βρέθηκαν αθλητές.</div>
+  <% } %>
+</div>
