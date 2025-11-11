@@ -1,18 +1,54 @@
 <div class="container mt-4">
-  <h3 class="text-center mb-3">🏅 Διαχείριση Αθλητή: <%= athlete.full_name %></h3>
 
-  <!-- ✅ Κατάσταση Ελέγχου -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h5>
-      Κατάσταση Ελέγχου:
-      <% if (athlete.review_status === 'ok') { %>
-        <span class="badge bg-success">✅ Εντάξει</span>
-      <% } else if (athlete.review_status === 'issue') { %>
-        <span class="badge bg-danger">⚠️ Πρόβλημα</span>
-      <% } else { %>
-        <span class="badge bg-secondary">⏳ Εκκρεμεί</span>
-      <% } %>
-    </h5>
+  <!-- 🔍 Αναζήτηση Αθλητή -->
+  <form class="row mb-3" method="GET" action="/editor-full/search" onsubmit="return this.q.value.trim() !== ''">
+    <div class="col-md-6">
+      <input type="text" name="q" class="form-control" placeholder="Αναζήτηση αθλητή (όνομα ή ID)...">
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-dark w-100">🔍 Αναζήτηση</button>
+    </div>
+    <div class="col-md-2">
+      <a href="/editor-full" class="btn btn-secondary w-100">📋 Όλοι οι Αθλητές</a>
+    </div>
+  </form>
+
+  <h3 class="text-center mb-4">🏅 Διαχείριση Αθλητή: <%= athlete.full_name %></h3>
+
+  <!-- Κατάσταση Ελέγχου + Progress -->
+  <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded"
+       style="background-color:
+        <%= athlete.review_status === 'ok' ? '#d1e7dd'
+         : athlete.review_status === 'issue' ? '#f8d7da'
+         : '#fff3cd' %>;">
+    <div>
+      <h5 class="mb-1">
+        Κατάσταση Ελέγχου:
+        <% if (athlete.review_status === 'ok') { %>
+          <span class="badge bg-success">✅ Εντάξει</span>
+        <% } else if (athlete.review_status === 'issue') { %>
+          <span class="badge bg-danger">⚠️ Πρόβλημα</span>
+        <% } else { %>
+          <span class="badge bg-secondary">⏳ Εκκρεμεί</span>
+        <% } %>
+      </h5>
+      <div class="small">
+        Ελεγχόμενος από: <strong><%= athlete.reviewed_by || '—' %></strong> •
+        Ημ/νία: <strong><%= athlete.last_reviewed_at || '—' %></strong>
+      </div>
+    </div>
+
+    <div style="width:220px;">
+      <div class="progress" style="height:18px;">
+        <div class="progress-bar
+             <%= athlete.review_status==='ok'?'bg-success':
+                 athlete.review_status==='issue'?'bg-danger':'bg-warning text-dark' %>"
+             role="progressbar"
+             style="width:<%= athlete.review_progress %>%">
+          <%= athlete.review_progress %>%
+        </div>
+      </div>
+    </div>
 
     <form method="POST" action="/editor-full/review-status/<%= athlete.id %>" class="d-flex gap-2">
       <button name="status" value="ok" class="btn btn-success btn-sm">✅ Εντάξει</button>
@@ -21,290 +57,194 @@
     </form>
   </div>
 
-  <hr>
-
-  <!-- 🧭 Tabs -->
-  <ul class="nav nav-tabs mt-3" id="editorTabs" role="tablist">
-    <li class="nav-item">
-      <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">Προφίλ</button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button">Αποτελέσματα</button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" id="points-tab" data-bs-toggle="tab" data-bs-target="#points" type="button">Πόντοι</button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link" id="seasons-tab" data-bs-toggle="tab" data-bs-target="#seasons" type="button">Εποχές</button>
-    </li>
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="editorTabs">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#profile">Προφίλ</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#results">Αποτελέσματα</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#points">Πόντοι</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#yearly">Εποχές</a></li>
   </ul>
 
-  <div class="tab-content" id="editorTabsContent">
+  <div class="tab-content">
 
-    <!-- 🧍 Προφίλ -->
-    <div class="tab-pane fade show active p-3" id="profile">
-      <form action="/editor-full/<%= athlete.id %>/profile/update" method="POST" class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Full Name</label>
-          <input type="text" name="full_name" value="<%= athlete.full_name %>" class="form-control">
+    <!-- ΠΡΟΦΙΛ -->
+    <div class="tab-pane fade show active" id="profile">
+      <form method="POST" action="/editor-full/update" class="row g-3">
+        <input type="hidden" name="id" value="<%= athlete.id %>">
+
+        <div class="col-md-3"><label class="form-label">Ονοματεπώνυμο</label><input name="full_name" value="<%= athlete.full_name %>" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">Ημερομηνία Γέννησης</label><input type="date" name="birth_date" value="<%= athlete.birth_date %>" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">Φύλο</label><input name="gender" value="<%= athlete.gender %>" class="form-control"></div>
+        <div class="col-md-3">
+          <label class="form-label">Ηλικία</label>
+          <input class="form-control" readonly value="<%= Math.floor((new Date() - new Date(athlete.birth_date)) / (365.25*24*60*60*1000)) %> ετών">
         </div>
 
-        <div class="col-md-3">
-          <label class="form-label">Birth Date</label>
-          <input type="date" name="birth_date" value="<%= athlete.birth_date %>" class="form-control">
-        </div>
-
-        <div class="col-md-3">
-          <label class="form-label">Gender</label>
-          <select name="gender" class="form-select">
-            <option value="male" <%= athlete.gender === 'male' ? 'selected' : '' %>>Male</option>
-            <option value="female" <%= athlete.gender === 'female' ? 'selected' : '' %>>Female</option>
+        <div class="col-md-3"><label class="form-label">Discipline</label>
+          <select name="discipline" class="form-select">
+            <option value="">-- Επιλογή --</option>
+            <option value="KATA">KATA</option>
+            <option value="KUMITE">KUMITE</option>
           </select>
         </div>
 
-        <div class="col-md-3">
-          <label class="form-label">Age Category</label>
-          <select name="age_category_id" class="form-select">
-            <% ages.forEach(a => { %>
-              <option value="<%= a.id %>" <%= a.id === athlete.age_category_id ? 'selected' : '' %>><%= a.name %></option>
-            <% }) %>
-          </select>
-        </div>
+        <div class="col-md-3"><label class="form-label">Κατηγορία Ηλικίας</label><input class="form-control" value="<%= athlete.age_category %>"></div>
+        <div class="col-md-3"><label class="form-label">Κατηγορία Βάρους</label><input class="form-control" value="<%= athlete.weight_category %>"></div>
+        <div class="col-md-3"><label class="form-label">Σύλλογος</label><input class="form-control" value="<%= athlete.club %>"></div>
 
-        <div class="col-md-3">
-          <label class="form-label">Weight Category</label>
-          <select name="weight_category_id" class="form-select">
-            <% weights.forEach(w => { %>
-              <option value="<%= w.id %>" <%= w.id === athlete.weight_category_id ? 'selected' : '' %>><%= w.name %></option>
-            <% }) %>
-          </select>
-        </div>
+        <div class="col-md-3"><label class="form-label">Πόντοι KUMITE</label><input name="kumite_points" value="<%= athlete.kumite_points || 0 %>" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">Πόντοι KATA</label><input name="kata_points" value="<%= athlete.kata_points || 0 %>" class="form-control"></div>
 
-        <div class="col-md-3">
-          <label class="form-label">Club</label>
-          <select name="club_id" class="form-select">
-            <% clubs.forEach(c => { %>
-              <option value="<%= c.id %>" <%= c.id === athlete.club_id ? 'selected' : '' %>><%= c.name %></option>
-            <% }) %>
-          </select>
-        </div>
-
-        <div class="col-md-3">
-          <label class="form-label">Total Points</label>
-          <input type="number" step="0.001" name="total_points" value="<%= athlete.total_points %>" class="form-control">
-        </div>
-
-        <div class="col-12">
-          <button type="submit" class="btn btn-primary mt-2">💾 Save</button>
-        </div>
+        <div class="col-12"><button class="btn btn-primary mt-3">💾 Αποθήκευση</button></div>
       </form>
     </div>
 
-    <!-- 🏆 Αποτελέσματα -->
-    <div class="tab-pane fade p-3" id="results">
-      <h5>Αποτελέσματα Τουρνουά</h5>
-      <table class="table table-striped table-bordered align-middle text-center">
-        <thead class="table-dark">
+    <!-- ΑΠΟΤΕΛΕΣΜΑΤΑ -->
+    <div class="tab-pane fade" id="results">
+      <h5 class="mt-3">Αποτελέσματα Τουρνουά</h5>
+
+      <table class="table table-bordered align-middle">
+        <thead class="table-dark text-center">
           <tr>
-            <th>Τουρνουά</th>
-            <th>Ημ/νία</th>
-            <th>Θέση</th>
-            <th>Νίκες</th>
-            <th>Πόντοι</th>
-            <th>Σεζόν</th>
-            <th>Ενέργειες</th>
+            <th>Τουρνουά</th><th>Ημ/νία</th><th>Discipline</th>
+            <th>Θέση</th><th>Νίκες</th><th>Πόντοι</th><th>Σεζόν</th><th>Ενέργειες</th>
           </tr>
         </thead>
         <tbody>
           <% results.forEach(r => { %>
             <tr>
-              <form action="/editor-full/<%= athlete.id %>/results/<%= r.id %>/update" method="POST" class="row g-2 align-items-center">
-                <td class="col">
-                  <select name="tournament_id" class="form-select form-select-sm">
-                    <option value="<%= r.tournament_id %>" selected>
-                      <%= r.tournament_name %> (<%= r.tournament_date %>)
-                    </option>
-                    <% tournaments.forEach(t => { %>
-                      <option value="<%= t.id %>"><%= t.name %> (<%= t.date %>)</option>
-                    <% }) %>
+              <form method="POST" action="/editor-full/<%= athlete.id %>/results/save">
+                <input type="hidden" name="id" value="<%= r.id %>">
+                <td><a href="/tournaments/<%= r.tournament_id %>" target="_blank"><%= r.tournament_name %></a></td>
+                <td><%= r.tournament_date %></td>
+                <td>
+                  <select name="discipline" class="form-select form-select-sm">
+                    <option value="KUMITE" <%= r.event_type==='KUMITE'?'selected':'' %>>KUMITE</option>
+                    <option value="KATA" <%= r.event_type==='KATA'?'selected':'' %>>KATA</option>
                   </select>
                 </td>
-                <td class="col"><input type="text" class="form-control form-control-sm" value="<%= r.tournament_date %>" readonly></td>
-                <td class="col-1"><input type="number" name="placement" class="form-control form-control-sm" value="<%= r.placement %>"></td>
-                <td class="col-1"><input type="number" name="wins" class="form-control form-control-sm" value="<%= r.wins %>"></td>
-                <td class="col-1"><input type="number" step="0.001" name="points_earned" class="form-control form-control-sm" value="<%= r.points_earned %>"></td>
-                <td class="col-1"><input type="number" name="season_year" class="form-control form-control-sm" value="<%= r.season_year %>"></td>
-                <td class="col text-nowrap">
-                  <button class="btn btn-sm btn-warning">✏️ Save</button>
-                  <form action="/editor-full/<%= athlete.id %>/results/<%= r.id %>/delete" method="POST" class="d-inline">
-                    <button class="btn btn-sm btn-danger" onclick="return confirm('Διαγραφή;')">🗑️</button>
-                  </form>
+                <td><input type="number" name="placement" value="<%= r.placement %>" class="form-control form-control-sm"></td>
+                <td><input type="number" name="wins" value="<%= r.wins %>" class="form-control form-control-sm"></td>
+                <td><input type="number" step="0.001" name="points_earned" value="<%= r.points_earned %>" class="form-control form-control-sm"></td>
+                <td><input type="text" name="season_year" value="<%= r.season_year %>" class="form-control form-control-sm"></td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-success">💾</button>
                 </td>
               </form>
+              <td class="text-center">
+                <form method="POST" action="/editor-full/<%= athlete.id %>/results/<%= r.id %>/delete" onsubmit="return confirm('Διαγραφή;')">
+                  <button class="btn btn-sm btn-danger">🗑️</button>
+                </form>
+              </td>
             </tr>
           <% }) %>
         </tbody>
-      </table>
 
-      <hr>
-      <h6>➕ Προσθήκη νέου αποτελέσματος</h6>
-      <form action="/editor-full/<%= athlete.id %>/results/add" method="POST" class="row g-2">
-        <div class="col-md-4">
-          <select name="tournament_id" class="form-select">
-            <% tournaments.forEach(t => { %>
-              <option value="<%= t.id %>"><%= t.name %> (<%= t.date %>)</option>
-            <% }) %>
-          </select>
-        </div>
-        <div class="col-md-2"><input type="number" name="placement" class="form-control" placeholder="Θέση"></div>
-        <div class="col-md-2"><input type="number" name="wins" class="form-control" placeholder="Νίκες"></div>
-        <div class="col-md-2"><input type="number" step="0.001" name="points_earned" class="form-control" placeholder="Πόντοι"></div>
-        <div class="col-md-2"><input type="number" name="season_year" class="form-control" placeholder="Σεζόν (π.χ. 2025)"></div>
-        <div class="col-md-12 mt-2"><button type="submit" class="btn btn-success">💾 Προσθήκη</button></div>
-      </form>
-    </div>
-
-    <!-- 💰 Πόντοι -->
-    <div class="tab-pane fade p-3" id="points">
-      <div class="row">
-        <div class="col-md-6">
-          <h5>Ιστορικό Πόντων – KUMITE</h5>
-          <table class="table table-bordered table-sm text-center align-middle mb-4">
-            <thead class="table-dark">
-              <tr>
-                <th>Ημ/νία</th>
-                <th>Πριν</th>
-                <th>Μετά</th>
-                <th>Διαφορά</th>
-                <th>Σύνολο</th>
-                <th>Season</th>
-                <th>Περιγραφή</th>
-                <th>Ενέργειες</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% (historyKumite || []).forEach(h => { %>
-                <tr>
-                  <form method="POST" action="/editor-full/<%= athlete.id %>/points/<%= h.id %>/update" class="row g-1">
-                    <td class="col"><input type="text" class="form-control form-control-sm" value="<%= h.date %>" readonly></td>
-                    <td class="col"><input type="number" step="0.001" class="form-control form-control-sm" value="<%= h.points_before %>" readonly></td>
-                    <td class="col"><input type="number" step="0.001" name="points_after" class="form-control form-control-sm" value="<%= h.points_after %>"></td>
-                    <td class="col"><input type="number" step="0.001" class="form-control form-control-sm" value="<%= h.delta %>" readonly></td>
-                    <td class="col"><input type="number" step="0.001" name="total_after" class="form-control form-control-sm" value="<%= h.total_after %>"></td>
-                    <td class="col-1"><input type="number" name="season_year" class="form-control form-control-sm" value="<%= h.season_year %>"></td>
-                    <td class="col"><input type="text" name="description" class="form-control form-control-sm" value="<%= h.description || '' %>"></td>
-                    <td class="col text-nowrap">
-                      <button class="btn btn-sm btn-warning">✏️</button>
-                      <form method="POST" action="/editor-full/<%= athlete.id %>/points/<%= h.id %>/delete" class="d-inline">
-                        <button class="btn btn-sm btn-danger" onclick="return confirm('Διαγραφή;')">🗑️</button>
-                      </form>
-                    </td>
-                  </form>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
-
-          <form class="row g-2" method="POST" action="/editor-full/<%= athlete.id %>/points/add/KUMITE">
-            <h6>➕ Προσθήκη (KUMITE)</h6>
-            <div class="col-md-3"><input type="number" step="0.001" name="total_after" class="form-control" placeholder="Total After"></div>
-            <div class="col-md-2"><input type="number" name="season_year" class="form-control" placeholder="Season"></div>
-            <div class="col-md-5"><input type="text" name="description" class="form-control" placeholder="Περιγραφή"></div>
-            <div class="col-md-2"><button class="btn btn-success w-100">💾 Προσθήκη</button></div>
-          </form>
-        </div>
-
-        <div class="col-md-6">
-          <h5>Ιστορικό Πόντων – KATA</h5>
-          <table class="table table-bordered table-sm text-center align-middle mb-4">
-            <thead class="table-dark">
-              <tr>
-                <th>Ημ/νία</th>
-                <th>Πριν</th>
-                <th>Μετά</th>
-                <th>Διαφορά</th>
-                <th>Σύνολο</th>
-                <th>Season</th>
-                <th>Περιγραφή</th>
-                <th>Ενέργειες</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% (historyKata || []).forEach(h => { %>
-                <tr>
-                  <form method="POST" action="/editor-full/<%= athlete.id %>/points/<%= h.id %>/update" class="row g-1">
-                    <td class="col"><input type="text" class="form-control form-control-sm" value="<%= h.date %>" readonly></td>
-                    <td class="col"><input type="number" step="0.001" class="form-control form-control-sm" value="<%= h.points_before %>" readonly></td>
-                    <td class="col"><input type="number" step="0.001" name="points_after" class="form-control form-control-sm" value="<%= h.points_after %>"></td>
-                    <td class="col"><input type="number" step="0.001" class="form-control form-control-sm" value="<%= h.delta %>" readonly></td>
-                    <td class="col"><input type="number" step="0.001" name="total_after" class="form-control form-control-sm" value="<%= h.total_after %>"></td>
-                    <td class="col-1"><input type="number" name="season_year" class="form-control form-control-sm" value="<%= h.season_year %>"></td>
-                    <td class="col"><input type="text" name="description" class="form-control form-control-sm" value="<%= h.description || '' %>"></td>
-                    <td class="col text-nowrap">
-                      <button class="btn btn-sm btn-warning">✏️</button>
-                      <form method="POST" action="/editor-full/<%= athlete.id %>/points/<%= h.id %>/delete" class="d-inline">
-                        <button class="btn btn-sm btn-danger" onclick="return confirm('Διαγραφή;')">🗑️</button>
-                      </form>
-                    </td>
-                  </form>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
-
-          <form class="row g-2" method="POST" action="/editor-full/<%= athlete.id %>/points/add/KATA">
-            <h6>➕ Προσθήκη (KATA)</h6>
-            <div class="col-md-3"><input type="number" step="0.001" name="total_after" class="form-control" placeholder="Total After"></div>
-            <div class="col-md-2"><input type="number" name="season_year" class="form-control" placeholder="Season"></div>
-            <div class="col-md-5"><input type="text" name="description" class="form-control" placeholder="Περιγραφή"></div>
-            <div class="col-md-2"><button class="btn btn-success w-100">💾 Προσθήκη</button></div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- 📈 Εποχές -->
-    <div class="tab-pane fade p-3" id="seasons">
-      <h5>Εποχικά Στοιχεία Πόντων</h5>
-      <table class="table table-bordered table-sm mt-2">
-        <thead class="table-dark text-center">
+        <tfoot>
           <tr>
-            <th>Έτος</th>
-            <th>Closing Points</th>
-            <th>Starting Points</th>
-            <th>Raw Closing</th>
-            <th>Ενέργειες</th>
+            <form method="POST" action="/editor-full/<%= athlete.id %>/results/save">
+              <td>
+                <select name="tournament_id" class="form-select form-select-sm">
+                  <% tournaments.forEach(t=>{ %>
+                    <option value="<%= t.id %>"><%= t.name %> (<%= t.date %>)</option>
+                  <% }) %>
+                </select>
+              </td>
+              <td>-</td>
+              <td>
+                <select name="discipline" class="form-select form-select-sm">
+                  <option value="KUMITE">KUMITE</option>
+                  <option value="KATA">KATA</option>
+                </select>
+              </td>
+              <td><input type="number" name="placement" class="form-control form-control-sm"></td>
+              <td><input type="number" name="wins" class="form-control form-control-sm"></td>
+              <td><input type="number" step="0.001" name="points_earned" class="form-control form-control-sm"></td>
+              <td><input type="text" name="season_year" class="form-control form-control-sm" value="2025"></td>
+              <td class="text-center"><button class="btn btn-sm btn-primary">➕</button></td>
+            </form>
           </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- ΠΟΝΤΟΙ -->
+    <div class="tab-pane fade" id="points">
+      <h5>Ιστορικό Πόντων – KUMITE</h5>
+
+      <table class="table table-striped">
+        <thead class="table-dark text-center">
+          <tr><th>Ημ/νία</th><th>Πριν</th><th>Μετά</th><th>Διαφορά</th><th>Σύνολο</th><th>Season</th><th>Περιγραφή</th><th>Ενέργειες</th></tr>
         </thead>
         <tbody class="text-center">
-          <% (yearlyData || []).forEach(y => { %>
+          <% historyKumite.forEach(h=>{ %>
             <tr>
-              <form method="POST" action="/editor-full/<%= athlete.id %>/yearly/<%= y.id %>/update" class="row g-1">
-                <td class="col-2"><input type="number" name="year" value="<%= y.year %>" class="form-control form-control-sm"></td>
-                <td class="col-3"><input type="number" step="0.001" name="closing_points" value="<%= y.closing_points %>" class="form-control form-control-sm"></td>
-                <td class="col-3"><input type="number" step="0.001" name="starting_points" value="<%= y.starting_points %>" class="form-control form-control-sm"></td>
-                <td class="col-3"><input type="number" step="0.001" name="closing_raw_points" value="<%= y.closing_raw_points %>" class="form-control form-control-sm"></td>
-                <td class="col text-nowrap">
-                  <button class="btn btn-sm btn-warning">✏️</button>
-                  <form method="POST" action="/editor-full/<%= athlete.id %>/yearly/<%= y.id %>/delete" class="d-inline">
-                    <button class="btn btn-sm btn-danger" onclick="return confirm('Διαγραφή;')">🗑️</button>
-                  </form>
-                </td>
-              </form>
+              <td><%= h.date %></td><td><%= h.points_before %></td><td><%= h.points_after %></td><td><%= h.points_after - h.points_before %></td><td><%= h.total_after %></td><td><%= h.season_year %></td><td><%= h.description %></td>
+              <td>
+                <form method="POST" action="/editor-full/<%= athlete.id %>/points/<%= h.id %>/delete" onsubmit="return confirm('Διαγραφή;')">
+                  <button class="btn btn-sm btn-danger">🗑️</button>
+                </form>
+              </td>
             </tr>
           <% }) %>
         </tbody>
       </table>
 
+      <form method="POST" action="/editor-full/<%= athlete.id %>/points/save/KUMITE" class="row g-2 mt-2">
+        <div class="col-md-3"><input type="number" name="total_after" step="0.001" class="form-control" placeholder="Σύνολο"></div>
+        <div class="col-md-2"><input type="text" name="season_year" class="form-control" placeholder="Έτος" value="2025"></div>
+        <div class="col-md-5"><input type="text" name="description" class="form-control" placeholder="Περιγραφή"></div>
+        <div class="col-md-2"><button class="btn btn-success w-100">➕ Προσθήκη (KUMITE)</button></div>
+      </form>
+
       <hr>
-      <h6>➕ Προσθήκη season line</h6>
-      <form method="POST" action="/editor-full/<%= athlete.id %>/yearly/add" class="row g-2">
-        <div class="col-md-2"><input type="number" name="year" class="form-control" placeholder="Έτος (π.χ. 2024)"></div>
-        <div class="col-md-3"><input type="number" step="0.001" name="closing_points" class="form-control" placeholder="Closing"></div>
-        <div class="col-md-3"><input type="number" step="0.001" name="starting_points" class="form-control" placeholder="Starting"></div>
-        <div class="col-md-3"><input type="number" step="0.001" name="closing_raw_points" class="form-control" placeholder="Raw Closing"></div>
-        <div class="col-md-1"><button class="btn btn-success w-100">💾</button></div>
+
+      <h5>Ιστορικό Πόντων – KATA</h5>
+      <table class="table table-striped">
+        <thead class="table-dark text-center">
+          <tr><th>Ημ/νία</th><th>Πριν</th><th>Μετά</th><th>Διαφορά</th><th>Σύνολο</th><th>Season</th><th>Περιγραφή</th><th>Ενέργειες</th></tr>
+        </thead>
+        <tbody class="text-center">
+          <% historyKata.forEach(h=>{ %>
+            <tr>
+              <td><%= h.date %></td><td><%= h.points_before %></td><td><%= h.points_after %></td><td><%= h.points_after - h.points_before %></td><td><%= h.total_after %></td><td><%= h.season_year %></td><td><%= h.description %></td>
+              <td>
+                <form method="POST" action="/editor-full/<%= athlete.id %>/points/<%= h.id %>/delete" onsubmit="return confirm('Διαγραφή;')">
+                  <button class="btn btn-sm btn-danger">🗑️</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <form method="POST" action="/editor-full/<%= athlete.id %>/points/save/KATA" class="row g-2 mt-2">
+        <div class="col-md-3"><input type="number" name="total_after" step="0.001" class="form-control" placeholder="Σύνολο"></div>
+        <div class="col-md-2"><input type="text" name="season_year" class="form-control" placeholder="Έτος" value="2025"></div>
+        <div class="col-md-5"><input type="text" name="description" class="form-control" placeholder="Περιγραφή"></div>
+        <div class="col-md-2"><button class="btn btn-success w-100">➕ Προσθήκη (KATA)</button></div>
       </form>
     </div>
+
+    <!-- ΕΠΟΧΕΣ -->
+    <div class="tab-pane fade" id="yearly">
+      <h5>Εποχικά Στοιχεία Πόντων</h5>
+      <table class="table table-bordered align-middle">
+        <thead class="table-dark text-center"><tr><th>Έτος</th><th>Closing</th><th>Starting</th><th>Raw</th><th>% Μεταφοράς</th><th>Ενημερώθηκε από</th></tr></thead>
+        <tbody class="text-center">
+          <% yearlyData.forEach(y=>{ %>
+            <tr><td><%= y.year %></td><td><%= y.closing_points %></td><td><%= y.starting_points %></td><td><%= y.closing_raw_points %></td><td><%= y.carry_percent %></td><td><%= y.updated_by || '-' %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <form method="POST" action="/editor-full/<%= athlete.id %>/yearly/add" class="row g-2 mt-2">
+        <div class="col-md-2"><input type="text" name="year" class="form-control" placeholder="Έτος" value="2025"></div>
+        <div class="col-md-3"><input type="number" step="0.001" name="closing_points" class="form-control" placeholder="Closing"></div>
+        <div class="col-md-3"><input type="number" step="0.001" name="closing_raw_points" class="form-control" placeholder="Raw Points"></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100">➕ Προσθήκη Season</button></div>
+      </form>
+    </div>
+
   </div>
 </div>

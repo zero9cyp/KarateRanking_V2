@@ -1,36 +1,35 @@
-// routes/editorFull.js
 const express = require("express");
 const router = express.Router();
 const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
-const db = new sqlite3.Database(path.join(__dirname, "../db/karate_ranking.db"));
+const db = new sqlite3.Database("./db/karate_ranking.db");
 const { ensureAuthenticated, ensureAdminOrCoach } = require("../middleware/auth");
 
-// ---------- helpers ----------
+// ----------------------------
+// Helper Promisified Wrappers
+// ----------------------------
 function dbAll(sql, params = []) {
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
   });
 }
+
 function dbGet(sql, params = []) {
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
   });
 }
+
 function dbRun(sql, params = []) {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function (err) {
-      if (err) reject(err); else resolve(this);
+      if (err) reject(err);
+      else resolve(this);
     });
   });
 }
-async function hasColumn(table, column) {
-  const info = await dbAll(`PRAGMA table_info(${table});`);
-  return info.some(c => c.name.toLowerCase() === column.toLowerCase());
-}
 
 // ===============================
-// LIST + SEARCH
+// LIST + SEARCH (Main page)
 // ===============================
 router.get("/", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
   const q = (req.query.q || "").trim();
@@ -49,6 +48,7 @@ router.get("/", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
     params.push(`%${q}%`);
   }
   sql += ` ORDER BY a.full_name COLLATE NOCASE;`;
+
   try {
     const athletes = await dbAll(sql, params);
     res.render("editor_full_list", { athletes, q });
@@ -58,73 +58,75 @@ router.get("/", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
 });
 
 // ===============================
-// SHOW: 4 Tabs (Προφίλ/Αποτελέσματα/Πόντοι/Εποχές)
+// ΑΝΑΖΗΤΗΣΗ ΑΘΛΗΤΗ (search route)
+// ===============================
+router.get("/search", ensureAuthenticated, ensureAdminOrCoach, (req, res) => {
+  const q = req.query.q?.trim();
+  if (!q) return res.redirect("/editor-full");
+
+  const sql = `
+    SELECT id, full_name FROM athletes
+    WHERE full_name LIKE ? OR id LIKE ?
+    ORDER BY full_name COLLATE NOCASE;
+  `;
+  db.all(sql, [`%${q}%`, `%${q}%`], (err, rows) => {
+    if (err) return res.send("Σφάλμα αναζήτησης: " + err.message);
+
+    if (rows.length === 1) {
+      // ✅ Μόνο ένας αθλητής — πήγαινε απευθείας στη σελίδα του
+      return res.redirect(`/editor-full/${rows[0].id}`);
+    }
+
+    // ✅ Αν είναι περισσότεροι, δείξε λίστα επιλογής
+    res.render("editor_search_results", { results: rows, q });
+  });
+});
+
+// ===============================
+// Πλήρης Προβολή Αθλητή
 // ===============================
 router.get("/:athleteId", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
   const athleteId = req.params.athleteId;
-  try {
-    await dbRun(`UPDATE athletes SET last_reviewed_at=datetime('now') WHERE id=?`, [athleteId]);
 
-    const athlete = await dbGet(`
-      SELECT a.*,
-             ac.name AS age_category, wc.name AS weight_category, c.name AS club
-      FROM athletes a
-      LEFT JOIN age_categories ac ON ac.id=a.age_category_id
-      LEFT JOIN weight_categories wc ON wc.id=a.weight_category_id
-      LEFT JOIN clubs c ON c.id=a.club_id
-      WHERE a.id=?`, [athleteId]);
+  try {
+    const athlete = await dbGet(
+      `SELECT a.*, ac.name AS age_category, wc.name AS weight_category, c.name AS club
+       FROM athletes a
+       LEFT JOIN age_categories ac ON ac.id = a.age_category_id
+       LEFT JOIN weight_categories wc ON wc.id = a.weight_category_id
+       LEFT JOIN clubs c ON c.id = a.club_id
+       WHERE a.id = ?;`,
+      [athleteId]
+    );
     if (!athlete) return res.status(404).send("Αθλητής δεν βρέθηκε.");
 
-    const results = await dbAll(`
-      SELECT r.id, r.tournament_id, r.placement, r.wins, r.points_earned, r.season_year,
-             t.name AS tournament_name, t.date AS tournament_date
-      FROM results r
-      JOIN tournaments t ON t.id = r.tournament_id
-      WHERE r.athlete_id=?
-      ORDER BY t.date DESC, r.id DESC;`, [athleteId]);
+    athlete.review_progress =
+      athlete.review_status === "ok" ? 100 :
+      athlete.review_status === "issue" ? 50 : 25;
+    athlete.reviewed_by = athlete.reviewed_by || null;
 
-    // yearly seasons
-    const yearlyData = await dbAll(`
-      SELECT id, year, closing_points, starting_points, closing_raw_points
-      FROM yearly_points
-      WHERE athlete_id=?
-      ORDER BY year DESC;`, [athleteId]);
+    const results = await dbAll(
+      `SELECT r.*, t.name AS tournament_name, t.date AS tournament_date
+       FROM results r
+       JOIN tournaments t ON t.id = r.tournament_id
+       WHERE r.athlete_id = ?
+       ORDER BY t.date DESC;`,
+      [athleteId]
+    );
 
-    // points history (discipline-aware if column exists)
-    const hasDiscipline = await hasColumn("points_history", "discipline");
+    const historyKumite = await dbAll(
+      `SELECT * FROM points_history WHERE athlete_id=? AND event_type='KUMITE' ORDER BY date DESC;`,
+      [athleteId]
+    );
+    const historyKata = await dbAll(
+      `SELECT * FROM points_history WHERE athlete_id=? AND event_type='KATA' ORDER BY date DESC;`,
+      [athleteId]
+    );
 
-    let historyKumite = [];
-    let historyKata = [];
-    if (hasDiscipline) {
-      historyKumite = await dbAll(`
-        SELECT id, date, points_before, points_after,
-               COALESCE(points_after - points_before, 0) AS delta,
-               COALESCE(total_after, points_after) AS total_after,
-               season_year, description, discipline
-        FROM points_history
-        WHERE athlete_id=? AND discipline='KUMITE'
-        ORDER BY date DESC, id DESC;`, [athleteId]);
-
-      historyKata = await dbAll(`
-        SELECT id, date, points_before, points_after,
-               COALESCE(points_after - points_before, 0) AS delta,
-               COALESCE(total_after, points_after) AS total_after,
-               season_year, description, discipline
-        FROM points_history
-        WHERE athlete_id=? AND discipline='KATA'
-        ORDER BY date DESC, id DESC;`, [athleteId]);
-    } else {
-      const history = await dbAll(`
-        SELECT id, date, points_before, points_after,
-               COALESCE(points_after - points_before, 0) AS delta,
-               COALESCE(total_after, points_after) AS total_after,
-               season_year, description
-        FROM points_history
-        WHERE athlete_id=?
-        ORDER BY date DESC, id DESC;`, [athleteId]);
-      historyKumite = history;
-      historyKata = []; // no separation available
-    }
+    const yearlyData = await dbAll(
+      `SELECT * FROM yearly_points WHERE athlete_id=? ORDER BY year DESC;`,
+      [athleteId]
+    );
 
     const clubs = await dbAll(`SELECT id, name FROM clubs ORDER BY name;`);
     const ages = await dbAll(`SELECT id, name FROM age_categories ORDER BY min_age;`);
@@ -141,226 +143,138 @@ router.get("/:athleteId", ensureAuthenticated, ensureAdminOrCoach, async (req, r
       ages,
       weights,
       tournaments,
+      query: req.query || {}
     });
   } catch (err) {
-    res.status(500).send("DB error: " + err.message);
+    res.status(500).send("Σφάλμα βάσης δεδομένων: " + err.message);
   }
 });
 
 // ===============================
-// Review status
+// Ενημέρωση Κατάστασης Ελέγχου
 // ===============================
 router.post("/review-status/:id", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
   const { status } = req.body;
   const id = req.params.id;
-  if (!["ok","issue","pending"].includes(status)) return res.status(400).send("Invalid status value");
-  try {
-    await dbRun(`UPDATE athletes
-                 SET review_status=?, last_reviewed_at=datetime('now')
-                 WHERE id=?`, [status, id]);
-    res.redirect(`/editor-full/${id}`);
-  } catch (err) {
-    res.status(500).send("DB error: " + err.message);
-  }
-});
+  if (!["ok", "issue", "pending"].includes(status))
+    return res.status(400).send("Μη έγκυρη κατάσταση.");
 
-// ===============================
-// Profile update
-// ===============================
-router.post("/:athleteId/profile/update", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
-  const { athleteId } = req.params;
-  const { full_name, birth_date, gender, age_category_id, weight_category_id, club_id, total_points } = req.body;
   try {
     await dbRun(
       `UPDATE athletes
-       SET full_name=?, birth_date=?, gender=?,
-           age_category_id=?, weight_category_id=?, club_id=?, total_points=?
+       SET review_status=?, reviewed_by=?, last_reviewed_at=datetime('now')
        WHERE id=?`,
-      [
-        (full_name||"").trim(),
-        birth_date || null,
-        (gender||"").toLowerCase(),
-        age_category_id || null,
-        weight_category_id || null,
-        club_id || null,
-        total_points || 0,
-        athleteId
-      ]
+      [status, req.user?.username || req.user?.email || "admin", id]
     );
-    res.redirect(`/editor-full/${athleteId}`);
+    res.redirect(`/editor-full/${id}`);
   } catch (err) {
-    res.status(500).send("DB error: " + err.message);
+    res.status(500).send("Σφάλμα κατά την ενημέρωση: " + err.message);
   }
 });
 
 // ===============================
-// Results: add / update / delete
-// ===============================
-router.post("/:athleteId/results/add", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
-  const { athleteId } = req.params;
-  const { tournament_id, placement, wins, points_earned, season_year } = req.body;
-  try {
-    await dbRun(
-      `INSERT INTO results (athlete_id, tournament_id, placement, wins, points_earned, season_year)
-       VALUES (?,?,?,?,?,?)`,
-      [athleteId, tournament_id, placement||0, wins||0, points_earned||0, season_year||2025]
-    );
-    res.redirect(`/editor-full/${athleteId}#results`);
-  } catch (err) {
-    res.status(500).send("DB error: " + err.message);
-  }
-});
-
-router.post("/:athleteId/results/:resultId/update", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
-  const { athleteId, resultId } = req.params;
-  const { tournament_id, placement, wins, points_earned, season_year } = req.body;
-  try {
-    await dbRun(
-      `UPDATE results
-       SET tournament_id=?, placement=?, wins=?, points_earned=?, season_year=?
-       WHERE id=? AND athlete_id=?`,
-      [tournament_id, placement||0, wins||0, points_earned||0, season_year||2025, resultId, athleteId]
-    );
-    res.redirect(`/editor-full/${athleteId}#results`);
-  } catch (err) {
-    res.status(500).send("DB error: " + err.message);
-  }
-});
-
-router.post("/:athleteId/results/:resultId/delete", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
-  const { athleteId, resultId } = req.params;
-  try {
-    await dbRun(`DELETE FROM results WHERE id=? AND athlete_id=?`, [resultId, athleteId]);
-    res.redirect(`/editor-full/${athleteId}#results`);
-  } catch (err) {
-    res.status(500).send("DB error: " + err.message);
-  }
-});
-
-// ===============================
-// Points history: add (KATA/KUMITE), update, delete
-// ===============================
-router.post("/:athleteId/points/add/:discipline", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
-  const { athleteId, discipline } = req.params; // "KATA" or "KUMITE"
-  const { total_after, season_year, description } = req.body;
-  try {
-    const colOk = await hasColumn("points_history","discipline");
-
-    const last = await dbGet(
-      colOk
-        ? `SELECT COALESCE(total_after, points_after, 0) AS last_total
-           FROM points_history WHERE athlete_id=? AND discipline=? 
-           ORDER BY date DESC, id DESC LIMIT 1`
-        : `SELECT COALESCE(total_after, points_after, 0) AS last_total
-           FROM points_history WHERE athlete_id=?
-           ORDER BY date DESC, id DESC LIMIT 1`,
-      colOk ? [athleteId, discipline] : [athleteId]
-    );
-
-    const before = last ? (last.last_total || 0) : 0;
-    const after = parseFloat(total_after || 0);
-
-    await dbRun(
-      colOk
-        ? `INSERT INTO points_history
-           (athlete_id, date, points_before, points_after, total_after, season_year, description, discipline)
-           VALUES (?, datetime('now'), ?, ?, ?, ?, ?, ?)`
-        : `INSERT INTO points_history
-           (athlete_id, date, points_before, points_after, total_after, season_year, description)
-           VALUES (?, datetime('now'), ?, ?, ?, ?, ?)`,
-      colOk
-        ? [athleteId, before, after, after, season_year || 2025, description || null, discipline]
-        : [athleteId, before, after, after, season_year || 2025, description || null]
-    );
-
-    // sync to athletes.{kumite_points|kata_points} or fallback to total_points
-    if (colOk) {
-      const column = discipline === "KATA" ? "kata_points" : "kumite_points";
-      // if the column doesn't exist on athletes, fallback to total_points
-      let athleteCols = await dbAll(`PRAGMA table_info(athletes);`);
-      const athleteHas = name => athleteCols.some(c => c.name.toLowerCase() === name.toLowerCase());
-      if (athleteHas(column)) {
-        await dbRun(`UPDATE athletes SET ${column}=? WHERE id=?`, [after, athleteId]);
-      } else {
-        await dbRun(`UPDATE athletes SET total_points=? WHERE id=?`, [after, athleteId]);
-      }
-    } else {
-      await dbRun(`UPDATE athletes SET total_points=? WHERE id=?`, [after, athleteId]);
-    }
-
-    res.redirect(`/editor-full/${athleteId}#points`);
-  } catch (err) {
-    res.status(500).send("DB error: " + err.message);
-  }
-});
-
-router.post("/:athleteId/points/:pointId/update", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
-  const { athleteId, pointId } = req.params;
-  const { points_after, total_after, season_year, description } = req.body;
-  try {
-    await dbRun(
-      `UPDATE points_history
-       SET points_after=?, total_after=?, season_year=?, description=?
-       WHERE id=? AND athlete_id=?`,
-      [points_after||0, total_after||0, season_year||null, description||null, pointId, athleteId]
-    );
-    res.redirect(`/editor-full/${athleteId}#points`);
-  } catch (err) {
-    res.status(500).send("DB error: " + err.message);
-  }
-});
-
-router.post("/:athleteId/points/:pointId/delete", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
-  const { athleteId, pointId } = req.params;
-  try {
-    await dbRun(`DELETE FROM points_history WHERE id=? AND athlete_id=?`, [pointId, athleteId]);
-    res.redirect(`/editor-full/${athleteId}#points`);
-  } catch (err) {
-    res.status(500).send("DB error: " + err.message);
-  }
-});
-
-// ===============================
-// Yearly seasons: add / update / delete
+// Προσθήκη Νέας Season
 // ===============================
 router.post("/:athleteId/yearly/add", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
+  const { year, closing_points, closing_raw_points } = req.body;
+  const athleteId = req.params.athleteId;
+
+  try {
+    const prev = await dbGet(
+      `SELECT closing_points FROM yearly_points WHERE athlete_id=? AND year < ? ORDER BY year DESC LIMIT 1`,
+      [athleteId, year]
+    );
+    const startVal = prev ? prev.closing_points : 0;
+
+    await dbRun(
+      `INSERT INTO yearly_points
+       (athlete_id, year, closing_points, starting_points, closing_raw_points, carry_percent, updated_by)
+       VALUES (?,?,?,?,?,?,?)`,
+      [athleteId, year, closing_points || 0, startVal, closing_raw_points || 0, 100, req.user?.username || "admin"]
+    );
+
+    res.redirect(`/editor-full/${athleteId}`);
+  } catch (err) {
+    res.status(500).send("Σφάλμα βάσης: " + err.message);
+  }
+});
+
+// ===============================
+// ΑΠΟΤΕΛΕΣΜΑΤΑ - Προσθήκη / Ενημέρωση
+// ===============================
+router.post("/:athleteId/results/save", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
   const { athleteId } = req.params;
-  const { year, closing_points, starting_points, closing_raw_points } = req.body;
+  const { id, tournament_id, placement, wins, points_earned, season_year, discipline } = req.body;
   try {
-    await dbRun(
-      `INSERT INTO yearly_points (athlete_id, year, closing_points, starting_points, closing_raw_points)
-       VALUES (?,?,?,?,?)`,
-      [athleteId, year, closing_points||0, starting_points||0, closing_raw_points||0]
-    );
-    res.redirect(`/editor-full/${athleteId}#seasons`);
+    if (id && id !== "") {
+      await dbRun(
+        `UPDATE results SET tournament_id=?, placement=?, wins=?, points_earned=?, season_year=?, event_type=? WHERE id=? AND athlete_id=?`,
+        [tournament_id, placement, wins, points_earned, season_year, discipline, id, athleteId]
+      );
+    } else {
+      await dbRun(
+        `INSERT INTO results (athlete_id, tournament_id, placement, wins, points_earned, season_year, event_type)
+         VALUES (?,?,?,?,?,?,?)`,
+        [athleteId, tournament_id, placement, wins, points_earned, season_year, discipline]
+      );
+    }
+    res.redirect(`/editor-full/${athleteId}`);
   } catch (err) {
-    res.status(500).send("DB error: " + err.message);
+    res.status(500).send("Σφάλμα αποθήκευσης αποτελέσματος: " + err.message);
   }
 });
 
-router.post("/:athleteId/yearly/:id/update", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
-  const { athleteId, id } = req.params;
-  const { year, closing_points, starting_points, closing_raw_points } = req.body;
+// ===============================
+// Διαγραφή αποτελέσματος
+// ===============================
+router.post("/:athleteId/results/:resultId/delete", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
   try {
-    await dbRun(
-      `UPDATE yearly_points
-       SET year=?, closing_points=?, starting_points=?, closing_raw_points=?
-       WHERE id=? AND athlete_id=?`,
-      [year, closing_points||0, starting_points||0, closing_raw_points||0, id, athleteId]
-    );
-    res.redirect(`/editor-full/${athleteId}#seasons`);
+    await dbRun(`DELETE FROM results WHERE id=? AND athlete_id=?`, [req.params.resultId, req.params.athleteId]);
+    res.redirect(`/editor-full/${req.params.athleteId}`);
   } catch (err) {
-    res.status(500).send("DB error: " + err.message);
+    res.status(500).send("Σφάλμα διαγραφής: " + err.message);
   }
 });
 
-router.post("/:athleteId/yearly/:id/delete", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
-  const { athleteId, id } = req.params;
+// ===============================
+// Πόντοι - Προσθήκη / Ενημέρωση
+// ===============================
+router.post("/:athleteId/points/save/:discipline", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
+  const { athleteId, discipline } = req.params;
+  const { id, total_after, season_year, description } = req.body;
   try {
-    await dbRun(`DELETE FROM yearly_points WHERE id=? AND athlete_id=?`, [id, athleteId]);
-    res.redirect(`/editor-full/${athleteId}#seasons`);
+    if (id && id !== "") {
+      await dbRun(
+        `UPDATE points_history SET total_after=?, season_year=?, description=? WHERE id=? AND athlete_id=? AND event_type=?`,
+        [total_after, season_year, description, id, athleteId, discipline]
+      );
+    } else {
+      const prev = await dbGet(
+        `SELECT COALESCE(total_after,0) AS last_total FROM points_history WHERE athlete_id=? AND event_type=? ORDER BY date DESC LIMIT 1`,
+        [athleteId, discipline]
+      );
+      const before = prev ? prev.last_total : 0;
+      await dbRun(
+        `INSERT INTO points_history (athlete_id, date, points_before, points_after, total_after, season_year, description, event_type, added_by)
+         VALUES (?, datetime('now'), ?, ?, ?, ?, ?, ?, ?)`,
+        [athleteId, before, total_after, total_after, season_year, description, discipline, req.user?.username || "admin"]
+      );
+    }
+    res.redirect(`/editor-full/${athleteId}`);
   } catch (err) {
-    res.status(500).send("DB error: " + err.message);
+    res.status(500).send("Σφάλμα πόντων: " + err.message);
+  }
+});
+
+// ===============================
+// Διαγραφή Πόντων
+// ===============================
+router.post("/:athleteId/points/:pointId/delete", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
+  try {
+    await dbRun(`DELETE FROM points_history WHERE id=? AND athlete_id=?`, [req.params.pointId, req.params.athleteId]);
+    res.redirect(`/editor-full/${req.params.athleteId}`);
+  } catch (err) {
+    res.status(500).send("Σφάλμα διαγραφής πόντων: " + err.message);
   }
 });
 
