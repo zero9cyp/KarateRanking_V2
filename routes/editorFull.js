@@ -176,21 +176,24 @@ router.post("/review-status/:id", ensureAuthenticated, ensureAdminOrCoach, async
 // Προσθήκη Νέας Season
 // ===============================
 router.post("/:athleteId/yearly/add", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
-  const { year, closing_points, closing_raw_points } = req.body;
+  const { year, closing_points, closing_raw_points, event_type } = req.body;
   const athleteId = req.params.athleteId;
 
   try {
     const prev = await dbGet(
-      `SELECT closing_points FROM yearly_points WHERE athlete_id=? AND year < ? ORDER BY year DESC LIMIT 1`,
-      [athleteId, year]
+      `SELECT closing_points FROM yearly_points 
+       WHERE athlete_id=? AND year < ? AND event_type=? 
+       ORDER BY year DESC LIMIT 1`,
+      [athleteId, year, event_type]
     );
+
     const startVal = prev ? prev.closing_points : 0;
 
     await dbRun(
       `INSERT INTO yearly_points
-       (athlete_id, year, closing_points, starting_points, closing_raw_points, carry_percent, updated_by)
-       VALUES (?,?,?,?,?,?,?)`,
-      [athleteId, year, closing_points || 0, startVal, closing_raw_points || 0, 100, req.user?.username || "admin"]
+       (athlete_id, year, closing_points, starting_points, closing_raw_points, carry_percent, updated_by, event_type)
+       VALUES (?,?,?,?,?,?,?,?)`,
+      [athleteId, year, closing_points || 0, startVal, closing_raw_points || 0, 100, req.user?.username || "admin", event_type]
     );
 
     res.redirect(`/editor-full/${athleteId}`);
@@ -205,10 +208,12 @@ router.post("/:athleteId/yearly/add", ensureAuthenticated, ensureAdminOrCoach, a
 router.post("/:athleteId/results/save", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
   const { athleteId } = req.params;
   const { id, tournament_id, placement, wins, points_earned, season_year, discipline } = req.body;
+
   try {
     if (id && id !== "") {
       await dbRun(
-        `UPDATE results SET tournament_id=?, placement=?, wins=?, points_earned=?, season_year=?, event_type=? WHERE id=? AND athlete_id=?`,
+        `UPDATE results SET tournament_id=?, placement=?, wins=?, points_earned=?, season_year=?, event_type=? 
+         WHERE id=? AND athlete_id=?`,
         [tournament_id, placement, wins, points_earned, season_year, discipline, id, athleteId]
       );
     } else {
@@ -218,6 +223,42 @@ router.post("/:athleteId/results/save", ensureAuthenticated, ensureAdminOrCoach,
         [athleteId, tournament_id, placement, wins, points_earned, season_year, discipline]
       );
     }
+
+    // ✅ Auto-update total and points_history
+    const total = await dbGet(
+      `SELECT COALESCE(SUM(points_earned), 0) AS total 
+       FROM results 
+       WHERE athlete_id=? AND event_type=?`,
+      [athleteId, discipline]
+    );
+
+    const before = await dbGet(
+      `SELECT COALESCE(total_after, 0) AS last_total 
+       FROM points_history 
+       WHERE athlete_id=? AND event_type=? 
+       ORDER BY date DESC LIMIT 1`,
+      [athleteId, discipline]
+    );
+
+    const beforeTotal = before ? before.last_total : 0;
+    const afterTotal = total.total;
+
+    await dbRun(
+      `INSERT INTO points_history 
+         (athlete_id, date, points_before, points_after, total_after, season_year, description, event_type, added_by)
+       VALUES (?, datetime('now'), ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        athleteId,
+        beforeTotal,
+        afterTotal,
+        afterTotal,
+        season_year,
+        `Auto update from tournament ID ${tournament_id}`,
+        discipline,
+        req.user?.username || "system"
+      ]
+    );
+
     res.redirect(`/editor-full/${athleteId}`);
   } catch (err) {
     res.status(500).send("Σφάλμα αποθήκευσης αποτελέσματος: " + err.message);
@@ -275,6 +316,35 @@ router.post("/:athleteId/points/:pointId/delete", ensureAuthenticated, ensureAdm
     res.redirect(`/editor-full/${req.params.athleteId}`);
   } catch (err) {
     res.status(500).send("Σφάλμα διαγραφής πόντων: " + err.message);
+  }
+});
+
+router.post("/season/rollover", ensureAuthenticated, ensureAdminOrCoach, async (req, res) => {
+  const { closingYear, carryPercent } = req.body;
+  const nextYear = Number(closingYear) + 1;
+
+  try {
+    const sql = `
+      INSERT OR IGNORE INTO yearly_points (
+        athlete_id, year, closing_points, starting_points, closing_raw_points,
+        carry_percent, updated_by
+      )
+      SELECT 
+        r.athlete_id,
+        ? AS year,
+        0 AS closing_points,
+        ROUND(SUM(r.points_earned) * (? / 100.0), 3) AS starting_points,
+        SUM(r.points_earned) AS closing_raw_points,
+        ?,
+        ?
+      FROM results r
+      WHERE r.season_year = ?
+      GROUP BY r.athlete_id;
+    `;
+    await dbRun(sql, [nextYear, carryPercent, carryPercent, req.user?.username || "system", closingYear]);
+    res.send(`✅ Season rollover complete: ${closingYear} → ${nextYear}`);
+  } catch (err) {
+    res.status(500).send("Σφάλμα rollover: " + err.message);
   }
 });
 

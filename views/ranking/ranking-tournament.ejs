@@ -1,0 +1,127 @@
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">🏆 Κατάταξη Τουρνουά: <span class="text-primary"><%= tournament.name %></span></h3>
+
+    <div>
+      <a href="/tournaments" class="btn btn-outline-secondary btn-sm">⬅︎ Πίσω στα Τουρνουά</a>
+      <% if (approvedOnly) { %>
+        <a href="/ranking/tournament/<%= tournament.id %>" class="btn btn-outline-dark btn-sm ms-2">Προβολή: Όλα</a>
+      <% } else { %>
+        <a href="/ranking/tournament/<%= tournament.id %>?approved=1" class="btn btn-outline-dark btn-sm ms-2">Προβολή: Μόνο Approved</a>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Ημερομηνία</h6>
+          <div class="fw-bold"><%= tournament.date || '-' %></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">Τοποθεσία / Τύπος</h6>
+          <div class="fw-bold"><%= tournament.location || '-' %></div>
+          <div class="small text-secondary mt-1">Type: <%= tournament.type || '-' %> • Event: <%= (tournament.event_type || 'MIXED').toUpperCase() %></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="alert <%= approvedOnly ? 'alert-success' : 'alert-secondary' %> h-100 mb-0">
+        <div class="fw-bold"><%= approvedOnly ? 'Μόνο εγκεκριμένα αποτελέσματα' : 'Προβάλλονται όλα τα αποτελέσματα' %></div>
+        <div class="small mt-1">Μπορείς να αλλάξεις το φίλτρο από τα κουμπιά δεξιά επάνω.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="my-4">
+
+  <% if (!groups || groups.length === 0) { %>
+    <div class="alert alert-info text-center">Δεν υπάρχουν καταχωρημένα αποτελέσματα για αυτό το τουρνουά.</div>
+  <% } %>
+
+  <% groups.forEach(g => { %>
+    <div class="mb-5">
+      <div class="d-flex align-items-center mb-2">
+        <h5 class="mb-0">
+          <span class="badge bg-dark me-2"><%= g.discipline %></span>
+          <span class="text-primary"><%= g.ageName %></span>
+          <span class="text-muted">•</span>
+          <span class="text-danger"><%= g.weightName %></span>
+        </h5>
+      </div>
+
+      <!-- 🥇🥈🥉 PODIUM -->
+      <% if (g.podium && g.podium.length) { %>
+        <div class="row g-3 mb-3">
+          <% const medals = ['🥇','🥈','🥉']; %>
+          <% g.podium.forEach((p, idx) => { %>
+            <div class="col-md-4">
+              <div class="card border-0 shadow-sm" style="border-top:4px solid <%= idx===0 ? '#d4af37' : idx===1 ? '#c0c0c0' : '#cd7f32' %>;">
+                <div class="card-body">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="fw-bold"><%= medals[idx] %> <%= p.full_name %></div>
+                    <% if (p.approved) { %><span class="badge bg-success">Approved</span><% } else { %><span class="badge bg-secondary">Pending</span><% } %>
+                  </div>
+                  <div class="small text-muted mt-1">
+                    Θέση: <strong><%= p.placement || '-' %></strong> • Νίκες: <strong><%= p.wins || 0 %></strong>
+                  </div>
+                  <div class="small mt-1">
+                    Πόντοι: <span class="fw-bold text-success"><%= p.points_earned || 0 %></span>
+                    <% if (p.club_name) { %> • Σύλλογος: <%= p.club_name %><% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <!-- ΠΛΗΡΗΣ ΠΙΝΑΚΑΣ ΟΜΑΔΑΣ -->
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>#</th>
+              <th>Αθλητής</th>
+              <th>Σύλλογος</th>
+              <th>Φύλο</th>
+              <th>Θέση</th>
+              <th>Νίκες</th>
+              <th>Πόντοι</th>
+              <th>Season</th>
+              <th>Κατάσταση</th>
+            </tr>
+          </thead>
+          <tbody class="text-center">
+            <% g.items.forEach((r, i) => { %>
+              <tr>
+                <td><%= i + 1 %></td>
+                <td class="text-start fw-bold"><%= r.full_name %></td>
+                <td><%= r.club_name || '-' %></td>
+                <td><%= r.gender === 'male' ? 'Άνδρας' : (r.gender === 'female' ? 'Γυναίκα' : '-') %></td>
+                <td><%= r.placement || '-' %></td>
+                <td><%= r.wins || 0 %></td>
+                <td class="fw-bold text-success"><%= r.points_earned || 0 %></td>
+                <td><%= r.season_year || '-' %></td>
+                <td>
+                  <% if (r.approved) { %>
+                    <span class="badge bg-success">Approved</span>
+                  <% } else { %>
+                    <span class="badge bg-secondary">Pending</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% }) %>
+
+</div>

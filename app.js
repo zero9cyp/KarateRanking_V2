@@ -101,6 +101,7 @@ const rankingPublic = require("./routes/rankingPublic");
 const apiWeights = require("./routes/apiWeights");
 const adminResultsManager = require("./routes/adminResults");
 const editorFull = require("./routes/editorFull");
+const rankingTournamentRouter = require('./routes/rankingTournament');
 // -------------------------------
 // Home route
 // -------------------------------
@@ -118,6 +119,7 @@ app.use('/auth', authRoutes);
 app.use('/ranking', rankingV2);       // ✅ Νέα κατάταξη για KUMITE & KATA
 app.use('/index', ensureAuthenticated, indexRoutes);
 app.use("/ranking-public", rankingPublic);
+app.use('/ranking', rankingTournamentRouter); // αυτό δημιουργεί το /ranking/tournament/:id
 // -------------------------------
 // Authenticated-only routes
 // -------------------------------
